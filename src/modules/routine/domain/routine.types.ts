@@ -23,3 +23,4 @@ export type RoutineResponse = {
     xpEarned: number
     tasks?: TaskResponse[]
 }
+

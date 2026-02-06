@@ -70,7 +70,7 @@ export const taskDomain = {
 
         }
     },
-    done: (task: TaskDomain) => {
+    done: (task: TaskDomain):TaskDomain => {
         if (task.status === 'DONE') {
             throw new Error("Task is already done")
         }
@@ -88,7 +88,7 @@ export const taskDomain = {
             status: 'DONE' as const,
             finishedAt: new Date(),
             startedAt: null,
-            duration: task.durationSec,
+            durationSec: task.durationSec,
             totalSeconds,
             actualDurationSec: totalSeconds,
 
@@ -103,11 +103,10 @@ export const taskDomain = {
             status: 'CANCELLED' as const,
             cancelledAt: new Date(),
 
-
-
         }
     },
 
+    
 
 }
 

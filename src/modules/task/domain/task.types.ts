@@ -5,7 +5,7 @@ export type Category = "WORK" | "PERSONAL" | "STUDY" | "BREAK";
 
 
 
-export type TaskInput = {
+export interface TaskInput {
     userId: string;
     content: string;
     plannedStart: Date;
@@ -14,7 +14,7 @@ export type TaskInput = {
 }
 
 
-export type TaskDomain = TaskInput & {
+export interface TaskDomain extends TaskInput {
     routineId: string;
     status: StatusTask;
     durationSec: number;
@@ -29,7 +29,7 @@ export type TaskDomain = TaskInput & {
 
 
 
-export type TaskResponse = {
+export interface TaskResponse {
     id: string;
     userId: string;
     content: string;

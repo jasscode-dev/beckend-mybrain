@@ -1,0 +1,20 @@
+xp_config :{
+    baseTask : 10,
+    onTimeBonus :3,
+    categoryBonus:{
+        WORK :1
+        STUDY:2
+        BREAK:0
+        PERSONAL:0
+
+    }
+    xpPerLevel: 200
+
+}
+
+
+metrics
+
+XP: calculateXpTask 
+
+

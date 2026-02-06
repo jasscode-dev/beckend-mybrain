@@ -2,11 +2,17 @@ import { IRoutineRepository } from "@modules/routine/repositories"
 import { ITaskRepository } from "@modules/task/repositories"
 import { normalizeDate, taskDomain, TaskInput } from "@modules/task/domain"
 import { RoutineService } from "@modules/routine/services/routine.service"
+import { IUserRepository } from "@modules/user/repositories"
+import { userDomain } from "@modules/user/domain"
+import { UserService } from "@modules/user/service/user.service"
+import { metricsDomain } from "@modules/metrics/domain"
+
 
 
 export const TaskService = (
     taskRepository: ITaskRepository,
-    routineRepository: IRoutineRepository
+    routineRepository: IRoutineRepository,
+    userRepository: IUserRepository
 ) => {
 
     const findById = async (id: string) => {
@@ -40,14 +46,24 @@ export const TaskService = (
 
         done: async (id: string) => {
             const task = await findById(id)
-            const updated = taskDomain.done(task)
-            return await taskRepository.update(id, updated)
+            const updatedTask = taskDomain.done(task)
+            const savedTask = await taskRepository.update(id, updatedTask)
+
+            const xp = metricsDomain.calculateTaskXP({
+                status: updatedTask.status,
+                plannedEnd: updatedTask.plannedEnd,
+                finishedAt: updatedTask.finishedAt,
+                category: updatedTask.category
+            })  
+
+            await UserService(userRepository).addXp(savedTask.userId, xp)
+            return savedTask
         },
 
         delete: async (id: string) => {
             const task = await findById(id)
             const updated = taskDomain.cancel(task)
-            return await taskRepository.update(id,updated)
+            return await taskRepository.update(id, updated)
         },
 
         findAll: async () => {

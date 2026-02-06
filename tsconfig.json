@@ -13,9 +13,11 @@
     "types": ["node", "jest"],
     "paths": {
       "@modules/*": ["src/modules/*"],
-      "@errors/*": ["src/errors/*"],
-      "@middlewares/*": ["src/middlewares/*"],
-      "@lib/*": ["src/lib/*"]
+      "@shared/*": ["src/shared/*"],
+      "@config/*": ["src/config/*"]
+
+  
+      
     }
   },
   "include": ["src"],

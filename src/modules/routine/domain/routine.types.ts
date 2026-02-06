@@ -1,4 +1,4 @@
-import { TaskDomain } from "src/modules/task"
+import { TaskDomain } from "@modules/task/domain"
 
 export type RoutineStatus = 'PENDING' | 'INPROGRESS' | 'DONE' | 'PARTIAL'
 export type RoutineDomain = {

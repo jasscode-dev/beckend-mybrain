@@ -1,8 +1,9 @@
 import { TaskService } from "@modules/task/services/task.service";
-import { InMemoryRoutineRepository } from "../repositories/in.memory.routine";
-import { InMemoryTaskRepository } from "../repositories/in.memory.task.repository"
+import { InMemoryRoutineRepository } from "../../repositories/in.memory.routine";
+import { InMemoryTaskRepository } from "../../repositories/in.memory.task.repository";
 
 ;
+import { InMemoryUserRepository } from "../../repositories/in.memory.user.repository";
 
 
 describe('Create Task', () => {
@@ -11,7 +12,9 @@ describe('Create Task', () => {
     it('should create a new task and create a routine', async () => {
         const repository = InMemoryTaskRepository()
         const routineRepository = InMemoryRoutineRepository([])
-        const taskService = TaskService(repository, routineRepository)
+        const userRepository = InMemoryUserRepository([])
+        const taskService = TaskService(repository, routineRepository,userRepository)
+  
 
         const input = {
             content: 'Task 1',
@@ -19,9 +22,10 @@ describe('Create Task', () => {
             plannedEnd: new Date('2023-10-27T09:00:00Z'),
             category: "WORK" as const,
             userId: 'clq1234567890123456789012'
-        }
-        const task = await taskService.create(input)
 
+        }
+
+        const task = await taskService.create(input)
         const savedTask = await repository.findById(task.id)
 
 
@@ -36,7 +40,8 @@ describe('Create Task', () => {
     it('should NOT create a new routine if one already exists for the same day', async () => {
         const repository = InMemoryTaskRepository()
         const routineRepository = InMemoryRoutineRepository([])
-        const taskService = TaskService(repository, routineRepository)
+        const userRepository = InMemoryUserRepository([])
+        const taskService = TaskService(repository, routineRepository,userRepository)
         const input = {
             content: 'Task 1',
             plannedStart: new Date('2023-10-27T08:00:00Z'),
@@ -59,7 +64,8 @@ describe('Create Task', () => {
     it('should create different routines for different days', async () => {
         const repository = InMemoryTaskRepository()
         const routineRepository = InMemoryRoutineRepository([])
-        const taskService = TaskService(repository, routineRepository)
+       const userRepository = InMemoryUserRepository([])
+        const taskService = TaskService(repository, routineRepository,userRepository)
         await taskService.create({
             content: 'Task day 1',
             plannedStart: new Date('2023-10-27T08:00:00Z'),
@@ -85,7 +91,8 @@ describe('Create Task', () => {
     it('should calculate task duration correctly', async () => {
         const repository = InMemoryTaskRepository()
         const routineRepository = InMemoryRoutineRepository([])
-        const taskService = TaskService(repository, routineRepository)
+     const userRepository = InMemoryUserRepository([])
+        const taskService = TaskService(repository, routineRepository,userRepository)
 
         const task = await taskService.create({
             content: 'Task',
@@ -100,7 +107,8 @@ describe('Create Task', () => {
     it('should throw error if plannedEnd is before plannedStart', async () => {
         const repository = InMemoryTaskRepository()
         const routineRepository = InMemoryRoutineRepository([])
-        const taskService = TaskService(repository, routineRepository)
+        const userRepository = InMemoryUserRepository([])
+        const taskService = TaskService(repository, routineRepository,userRepository)
 
         await expect(
             taskService.create({
@@ -115,7 +123,8 @@ describe('Create Task', () => {
     it('should create separate routines for different users on the same day', async () => {
         const repository = InMemoryTaskRepository()
         const routineRepository = InMemoryRoutineRepository([])
-        const taskService = TaskService(repository, routineRepository)
+       const userRepository = InMemoryUserRepository([])
+        const taskService = TaskService(repository, routineRepository,userRepository)
 
         const input = {
             content: 'Task',

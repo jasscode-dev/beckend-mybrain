@@ -1,7 +1,8 @@
 import { TaskResponse } from "src/modules/task/domain"
-import { InMemoryTaskRepository } from "../repositories/in.memory.task.repository"
-import { InMemoryRoutineRepository } from "../repositories/in.memory.routine"
+import { InMemoryTaskRepository } from "../../repositories/in.memory.task.repository"
+import { InMemoryRoutineRepository } from "../../repositories/in.memory.routine"
 import { TaskService } from "@modules/task/services/task.service"
+import { InMemoryUserRepository } from "../../repositories/in.memory.user.repository"
 
 
 describe("Pause Task Integration Test", () => {
@@ -26,7 +27,9 @@ describe("Pause Task Integration Test", () => {
 
         const repository = InMemoryTaskRepository([mockTask])
         const routineRepository = InMemoryRoutineRepository([])
-        const taskService = TaskService(repository, routineRepository)
+        const userRepository = InMemoryUserRepository([])
+        const taskService = TaskService(repository, routineRepository,userRepository)           
+      
 
         // Simular que a task começou há 10 segundos
         const startedAt = new Date()
@@ -66,7 +69,8 @@ describe("Pause Task Integration Test", () => {
 
         const repository = InMemoryTaskRepository([mockTask])
         const routineRepository = InMemoryRoutineRepository([])
-        const taskService = TaskService(repository, routineRepository)
+        const userRepository = InMemoryUserRepository([])
+        const taskService = TaskService(repository, routineRepository,userRepository)
 
         await expect(taskService.pause("1")).rejects.toThrow("Task is not running")
     })

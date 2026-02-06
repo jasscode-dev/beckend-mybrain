@@ -1,7 +1,8 @@
 import { TaskResponse } from "@modules/task/domain"
-import { InMemoryTaskRepository } from "../repositories/in.memory.task.repository"
-import { InMemoryRoutineRepository } from "../repositories/in.memory.routine"
+import { InMemoryTaskRepository } from "../../repositories/in.memory.task.repository"
+import { InMemoryRoutineRepository } from "../../repositories/in.memory.routine"
 import { TaskService } from "@modules/task/services/task.service"
+import { InMemoryUserRepository } from "../../repositories/in.memory.user.repository"
 
 describe("Start Task Integration Test", () => {
 
@@ -25,7 +26,8 @@ describe("Start Task Integration Test", () => {
 
         const repository = InMemoryTaskRepository([mockTask])
         const routineRepository = InMemoryRoutineRepository([])
-        const taskService = TaskService(repository, routineRepository)
+        const userRepository = InMemoryUserRepository([])
+        const taskService = TaskService(repository, routineRepository,userRepository)
 
         const task = await taskService.start("1")
 
@@ -55,7 +57,8 @@ describe("Start Task Integration Test", () => {
 
         const repository = InMemoryTaskRepository([mockTask])
         const routineRepository = InMemoryRoutineRepository([])
-        const taskService = TaskService(repository, routineRepository)
+        const userRepository = InMemoryUserRepository([])
+        const taskService = TaskService(repository, routineRepository,userRepository)
 
         await expect(taskService.start("1")).rejects.toThrow("Task is already running")
     })
@@ -79,8 +82,9 @@ describe("Start Task Integration Test", () => {
         }
 
         const repository = InMemoryTaskRepository([mockTask])
-        const routineRepository = InMemoryRoutineRepository([])
-        const taskService = TaskService(repository, routineRepository)
+        const routineRepository = InMemoryRoutineRepository([]) 
+        const userRepository = InMemoryUserRepository([])
+        const taskService = TaskService(repository, routineRepository,userRepository)
 
         await expect(taskService.start("1")).rejects.toThrow("Task is already done")
     })

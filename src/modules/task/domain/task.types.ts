@@ -29,6 +29,23 @@ export type TaskDomain = TaskInput & {
 
 
 
+export type TaskResponse = {
+    id: string;
+    userId: string;
+    content: string;
+    routineId: string;
+    category: Category;
+    plannedStart: Date;
+    plannedEnd: Date;
+    durationSec: number;
+    status: StatusTask;
+    startedAt: Date | null;
+    finishedAt: Date | null;
+    cancelledAt: Date | null;
+    totalSeconds: number;
+    actualDurationSec: number;
+}
+
 
 
 

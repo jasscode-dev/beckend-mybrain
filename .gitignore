@@ -63,3 +63,4 @@ coverage/
 .cache/
 .eslintc
 .anotation.txt
+/src/generated/prisma

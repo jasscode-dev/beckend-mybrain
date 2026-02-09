@@ -10,16 +10,30 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["node", "jest"],
+    "types": [
+      "node",
+      "jest"
+    ],
     "paths": {
-      "@modules/*": ["src/modules/*"],
-      "@shared/*": ["src/shared/*"],
-      "@config/*": ["src/config/*"]
-
-  
-      
+      "@/*": [
+        "src/*"
+      ],
+      "@modules/*": [
+        "src/modules/*"
+      ],
+      "@shared/*": [
+        "src/shared/*"
+      ],
+      "@config/*": [
+        "src/config/*"
+      ]
     }
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

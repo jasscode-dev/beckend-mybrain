@@ -1,4 +1,4 @@
-import { TaskResponse } from "src/modules/task/domain"
+import { TaskModel } from "src/modules/task/domain"
 import { InMemoryTaskRepository } from "../../repositories/in.memory.task.repository"
 import { InMemoryRoutineRepository } from "../../repositories/in.memory.routine"
 import { TaskService } from "@modules/task/services/task.service"
@@ -8,7 +8,7 @@ import { InMemoryUserRepository } from "../../repositories/in.memory.user.reposi
 describe("Pause Task Integration Test", () => {
 
     it("should pause a task", async () => {
-        const mockTask: TaskResponse = {
+        const mockTask: TaskModel = {
             id: "1",
             userId: "user-1",
             content: "Test task",
@@ -23,6 +23,8 @@ describe("Pause Task Integration Test", () => {
             cancelledAt: null,
             totalSeconds: 0,
             actualDurationSec: 0,
+            createdAt: new Date(),
+            updatedAt: new Date()
         }
 
         const repository = InMemoryTaskRepository([mockTask])
@@ -38,19 +40,19 @@ describe("Pause Task Integration Test", () => {
         await repository.update("1", {
             startedAt,
             totalSeconds: 0
-        } as any)
+        } as any,"user-1")
 
-        const task = await taskService.pause("1")
+        const task = await taskService.pause("1", "user-1")
 
         expect(task.status).toBe('PAUSED')
         // Esperamos pelo menos 10 segundos acumulados
         // findById para pegar os dados completos do repositório in-memory
-        const updatedTask = await repository.findById("1")
+        const updatedTask = await repository.findById("1", "user-1")
         expect((updatedTask as any).totalSeconds).toBeGreaterThanOrEqual(10)
     })
 
     it("should not pause a task if it is not in progress", async () => {
-        const mockTask: TaskResponse = {
+        const mockTask: TaskModel = {
             id: "1",
             userId: "user-1",
             content: "Test task",
@@ -65,6 +67,8 @@ describe("Pause Task Integration Test", () => {
             cancelledAt: null, 
             totalSeconds: 0,
             actualDurationSec: 0,
+            createdAt: new Date(),
+            updatedAt: new Date()
         }
 
         const repository = InMemoryTaskRepository([mockTask])
@@ -72,6 +76,6 @@ describe("Pause Task Integration Test", () => {
         const userRepository = InMemoryUserRepository([])
         const taskService = TaskService(repository, routineRepository,userRepository)
 
-        await expect(taskService.pause("1")).rejects.toThrow("Task is not running")
+        await expect(taskService.pause("1", "user-1")).rejects.toThrow("Task is not running")
     })
 })

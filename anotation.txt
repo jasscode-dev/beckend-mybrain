@@ -18,3 +18,120 @@ metrics
 XP: calculateXpTask 
 
 
+-- Se é calculo nao guarda no banco 
+
+routine {
+  id
+  userId
+  date
+  status
+  tasks
+}
+
+calculos:{
+totalTasks
+completedTasks
+completionRate
+xpEarned
+starEarned
+
+}
+
+Controller
+  ↓
+Service
+  - coordena
+  - busca dados
+  - calcula cenários
+  - chama domain
+  ↓
+Domain
+  - valida transições
+  - garante invariantes
+  ↓
+Repository
+  - queries eficientes
+  - atomicidade
+
+
+export const RoutineService = (
+  routineRepository: IRoutineRepository,
+  taskRepository: ITaskRepository
+) => {
+  return {
+    async evaluateRoutine(routineId: string, now: Date) {
+      const routine = await routineRepository.findById(routineId)
+      if (!routine) throw new Error('Routine not found')
+
+      const { totalTasks, completedTasks } =
+        await taskRepository.getRoutineProgress(routineId)
+
+      // 🔹 decisão de negócio
+      if (totalTasks === 0) return routine
+
+      if (completedTasks === totalTasks) {
+        return routineRepository.update(
+          routineId,
+          routineDomain.markDone(routine)
+        )
+      }
+
+      // exemplo: rotina diária expirou
+      if (now > endOfDay(routine.date)) {
+        return routineRepository.update(
+          routineId,
+          routineDomain.markFailed(routine)
+        )
+      }
+
+      return routine
+    }
+  }
+}
+
+export class TaskRepository {
+  async getRoutineProgress(routineId: string) {
+    const totalTasks = await prisma.task.count({
+      where: { routineId }
+    })
+
+    const completedTasks = await prisma.task.count({
+      where: {
+        routineId,
+        status: 'DONE'
+      }
+    })
+
+    return {
+      totalTasks,
+      completedTasks
+    }
+  }
+}
+
+checkRoutineCompleted: async (routineId: string, userId: string): Promise<boolean> => {
+            const routine = await findById(routineId, userId)
+
+            const stats = await repository.getRoutineStats(routine.id, userId)
+
+            if (stats.totalTasks === 0) return false
+            if (stats.completedTasks !== stats.totalTasks) return false
+
+            if(routine.status !== 'DONE') {
+                await repository.makeDone(routine.id, userId, 'DONE')
+                
+            }
+        },
+
+        async markDoneIfNotFinal(routineId: string, userId: string): Promise<boolean> {
+  const result = await prisma.routine.updateMany({
+    where: {
+      id: routineId,
+      userId,
+      status: { notIn: ['DONE', 'PARTIAL'] },
+    },
+    data: { status: 'DONE' },
+  })
+
+  return result.count === 1
+}

@@ -6,7 +6,6 @@ export type Category = "WORK" | "PERSONAL" | "STUDY" | "BREAK";
 
 
 export interface TaskInput {
-    userId: string;
     content: string;
     plannedStart: Date;
     plannedEnd: Date;
@@ -29,7 +28,7 @@ export interface TaskDomain extends TaskInput {
 
 
 
-export interface TaskResponse {
+export interface TaskModel {
     id: string;
     userId: string;
     content: string;
@@ -44,6 +43,8 @@ export interface TaskResponse {
     cancelledAt: Date | null;
     totalSeconds: number;
     actualDurationSec: number;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 

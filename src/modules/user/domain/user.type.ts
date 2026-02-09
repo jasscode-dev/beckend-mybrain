@@ -1,11 +1,11 @@
-import { RoutineResponse } from "@modules/routine/domain";
+import { RoutineModel } from "@modules/routine/domain";
 
 export interface UserDomain extends UserInput {
-   level: number;
-   xp: number;
-   stars: number;
-   tulips: number;
-   routines:RoutineResponse[]
+    level: number;
+    xp: number;
+    stars: number;
+    tulips: number;
+    routines: RoutineModel[]
 
 }
 
@@ -21,6 +21,8 @@ export interface LoginUserInput {
 }
 
 
-export interface UserResponse extends UserDomain{
+export interface UserModel extends UserDomain {
     userId: string;
+    createdAt: Date;
+    updatedAt: Date;
 }

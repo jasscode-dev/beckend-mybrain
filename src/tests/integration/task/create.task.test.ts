@@ -13,20 +13,21 @@ describe('Create Task', () => {
         const repository = InMemoryTaskRepository()
         const routineRepository = InMemoryRoutineRepository([])
         const userRepository = InMemoryUserRepository([])
-        const taskService = TaskService(repository, routineRepository,userRepository)
-  
+        const taskService = TaskService(repository, routineRepository, userRepository)
+
 
         const input = {
             content: 'Task 1',
             plannedStart: new Date('2023-10-27T08:00:00Z'),
             plannedEnd: new Date('2023-10-27T09:00:00Z'),
             category: "WORK" as const,
-            userId: 'clq1234567890123456789012'
 
         }
 
-        const task = await taskService.create(input)
-        const savedTask = await repository.findById(task.id)
+        const task = await taskService.create(input, "user-1")
+
+        expect(task.userId).toBe("user-1")
+        const savedTask = await repository.findById(task.id, "user-1")
 
 
         expect(savedTask?.routineId).toBeDefined()
@@ -41,21 +42,22 @@ describe('Create Task', () => {
         const repository = InMemoryTaskRepository()
         const routineRepository = InMemoryRoutineRepository([])
         const userRepository = InMemoryUserRepository([])
-        const taskService = TaskService(repository, routineRepository,userRepository)
+        const taskService = TaskService(repository, routineRepository, userRepository)
         const input = {
             content: 'Task 1',
             plannedStart: new Date('2023-10-27T08:00:00Z'),
             plannedEnd: new Date('2023-10-27T09:00:00Z'),
             category: "WORK" as const,
-            userId: 'clq1234567890123456789012'
+
         }
-        const task1 = await taskService.create(input)
+        const task1 = await taskService.create(input, "user-1")
         const task2 = await taskService.create({
             ...input,
             content: 'Task 2',
-        })
 
-        const routines = await routineRepository.findAllByUser(input.userId)
+        }, "user-1")
+
+        const routines = await routineRepository.findAllByUser('user-1')
 
         expect(routines).toHaveLength(1)
         expect(task1.routineId).toBe(task2.routineId)
@@ -64,25 +66,25 @@ describe('Create Task', () => {
     it('should create different routines for different days', async () => {
         const repository = InMemoryTaskRepository()
         const routineRepository = InMemoryRoutineRepository([])
-       const userRepository = InMemoryUserRepository([])
-        const taskService = TaskService(repository, routineRepository,userRepository)
+        const userRepository = InMemoryUserRepository([])
+        const taskService = TaskService(repository, routineRepository, userRepository)
         await taskService.create({
             content: 'Task day 1',
             plannedStart: new Date('2023-10-27T08:00:00Z'),
             plannedEnd: new Date('2023-10-27T09:00:00Z'),
             category: "WORK" as const,
-            userId: 'clq1234567890123456789012'
-        })
+
+        }, "user-1")
         const taskDay2 = await taskService.create({
             content: 'Task day 2',
             plannedStart: new Date('2023-10-28T08:00:00Z'),
             plannedEnd: new Date('2023-10-28T09:00:00Z'),
             category: "WORK" as const,
-            userId: 'clq1234567890123456789012'
-        })
+
+        }, "user-1")
 
 
-        const routines = await routineRepository.findAllByUser('clq1234567890123456789012')
+        const routines = await routineRepository.findAllByUser('user-1')
         expect(routines).toHaveLength(2)
         expect(taskDay2.routineId).not.toBeNull()
 
@@ -91,16 +93,16 @@ describe('Create Task', () => {
     it('should calculate task duration correctly', async () => {
         const repository = InMemoryTaskRepository()
         const routineRepository = InMemoryRoutineRepository([])
-     const userRepository = InMemoryUserRepository([])
-        const taskService = TaskService(repository, routineRepository,userRepository)
+        const userRepository = InMemoryUserRepository([])
+        const taskService = TaskService(repository, routineRepository, userRepository)
 
         const task = await taskService.create({
             content: 'Task',
             plannedStart: new Date('2023-10-27T08:00:00Z'),
             plannedEnd: new Date('2023-10-27T09:30:00Z'),
             category: "WORK" as const,
-            userId: 'user-1'
-        })
+
+        }, "user-1")
 
         expect(task.durationSec).toBe(90 * 60)
     })
@@ -108,7 +110,7 @@ describe('Create Task', () => {
         const repository = InMemoryTaskRepository()
         const routineRepository = InMemoryRoutineRepository([])
         const userRepository = InMemoryUserRepository([])
-        const taskService = TaskService(repository, routineRepository,userRepository)
+        const taskService = TaskService(repository, routineRepository, userRepository)
 
         await expect(
             taskService.create({
@@ -116,31 +118,31 @@ describe('Create Task', () => {
                 plannedStart: new Date('2023-10-27T10:00:00Z'),
                 plannedEnd: new Date('2023-10-27T09:00:00Z'),
                 category: "WORK" as const,
-                userId: 'user-1'
-            })
+
+            }, "user-1")
         ).rejects.toThrow()
     })
     it('should create separate routines for different users on the same day', async () => {
         const repository = InMemoryTaskRepository()
         const routineRepository = InMemoryRoutineRepository([])
-       const userRepository = InMemoryUserRepository([])
-        const taskService = TaskService(repository, routineRepository,userRepository)
+        const userRepository = InMemoryUserRepository([])
+        const taskService = TaskService(repository, routineRepository, userRepository)
 
         const input = {
             content: 'Task',
             plannedStart: new Date('2023-10-27T08:00:00Z'),
             plannedEnd: new Date('2023-10-27T09:00:00Z'),
             category: "WORK" as const,
-            userId: 'user-1'
+
         }
 
-        const task1 = await taskService.create(input)
+        const task1 = await taskService.create(input, "user-1")
         const task2 = await taskService.create({
             ...input,
-            userId: 'user-2'
-        })
 
-        expect(task1.routineId).not.toBe(task2.routineId)
+        }, "user-2")
+
+        expect(task1.routineId).not.toEqual(task2.routineId)
     })
 
 

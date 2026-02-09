@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique 
+  password  String
+
+  level     Int @default(1)
+  xp        Int @default(0)
+  stars     Int @default(0)
+
+  routines  Routine[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
+
+
+model Routine {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  date          DateTime
+
+  status        RoutineStatus @default(PENDING)
+
+  tasks         Task[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@unique([userId, date])
+}
+
+model Task {
+  id                 String      @id @default(cuid())
+  routineId           String
+  routine             Routine     @relation(fields: [routineId], references: [id])
+
+  content             String
+  status              StatusTask  @default(PENDING)
+  category            Category
+
+  plannedStart        DateTime
+  plannedEnd          DateTime
+  durationSec         Int
+  startedAt           DateTime?
+  finishedAt          DateTime?
+  cancelledAt         DateTime?
+  actualDurationSec   Int
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model RewardLog {
+  id         String   @id @default(cuid())
+  userId     String
+  routineId  String?
+  type       RewardType
+  amount     Int
+  createdAt  DateTime @default(now())
+}
+
+
+enum RewardType {
+  XP
+  STAR
+}
+
+enum RoutineStatus {
+  PENDING
+  INPROGRESS
+  DONE
+  PARTIAL
+}
+
+enum StatusTask {
+  PENDING
+  INPROGRESS
+  DONE
+  PAUSED
+  CANCELLED
+}
+
+enum Category {
+  WORK
+  STUDY
+  BREAK
+  PERSONAL
+}

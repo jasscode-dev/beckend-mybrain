@@ -3,75 +3,90 @@ import { ITaskRepository } from "@modules/task/repositories"
 import { normalizeDate, taskDomain, TaskInput } from "@modules/task/domain"
 import { RoutineService } from "@modules/routine/services/routine.service"
 import { IUserRepository } from "@modules/user/repositories"
-import { userDomain } from "@modules/user/domain"
 import { UserService } from "@modules/user/service/user.service"
 import { metricsDomain } from "@modules/metrics/domain"
-
-
+import { TaskMapper } from "../domain/task.mapper"
 
 export const TaskService = (
-    taskRepository: ITaskRepository,
-    routineRepository: IRoutineRepository,
-    userRepository: IUserRepository
+  taskRepository: ITaskRepository,
+  routineRepository: IRoutineRepository,
+  userRepository: IUserRepository,
 ) => {
 
-    const findById = async (id: string) => {
-        const task = await taskRepository.findById(id)
-        if (!task) throw new Error("Task not found")
-        return task
-    }
+  const findById = async (id: string, userId: string) => {
+    const task = await taskRepository.findById(id, userId)
+    if (!task) throw new Error("Task not found")
+    if (task.userId !== userId) throw new Error("Unauthorized")
+    return task
+  }
 
-    return {
-        create: async (input: TaskInput) => {
-            const date = normalizeDate(input.plannedStart)
+  const routineService = RoutineService(routineRepository, taskRepository)
+  const userService = UserService(userRepository)
 
-            const routine = await RoutineService(routineRepository)
-                .create(input.userId, date)
+  return {
+    create: async (input: TaskInput, userId: string) => {
+      const date = normalizeDate(input.plannedStart)
 
-            const task = taskDomain.create(input, routine.id)
-            return await taskRepository.save(task)
-        },
+      const routine = await routineService.getOrCreateDailyRoutine(userId, date)
 
-        start: async (id: string) => {
-            const task = await findById(id)
-            const updated = taskDomain.start(task)
-            return await taskRepository.update(id, updated)
-        },
+      const task = taskDomain.create(input, routine.id)
+      return await taskRepository.save(task, userId)
+    },
 
-        pause: async (id: string) => {
-            const task = await findById(id)
-            const updated = taskDomain.pause(task)
-            return await taskRepository.update(id, updated)
-        },
+    start: async (id: string, userId: string) => {
+      const now = new Date()
+      const task = await findById(id, userId)
 
-        done: async (id: string) => {
-            const task = await findById(id)
-            const updatedTask = taskDomain.done(task)
-            const savedTask = await taskRepository.update(id, updatedTask)
+      const updated = taskDomain.start(TaskMapper.toDomain(task), now)
+      return await taskRepository.update(id, updated, userId)
+    },
 
-            const xp = metricsDomain.calculateTaskXP({
-                status: updatedTask.status,
-                plannedEnd: updatedTask.plannedEnd,
-                finishedAt: updatedTask.finishedAt,
-                category: updatedTask.category
-            })  
+    pause: async (id: string, userId: string) => {
+      const now = new Date()
+      const task = await findById(id, userId)
 
-            await UserService(userRepository).addXp(savedTask.userId, xp)
-            return savedTask
-        },
+      const updated = taskDomain.pause(TaskMapper.toDomain(task), now)
+      return await taskRepository.update(id, updated, userId)
+    },
 
-        delete: async (id: string) => {
-            const task = await findById(id)
-            const updated = taskDomain.cancel(task)
-            return await taskRepository.update(id, updated)
-        },
+    done: async (id: string, userId: string) => {
+      const now = new Date()
 
-        findAll: async () => {
-            return await taskRepository.findAll()
-        },
+      const task = await findById(id, userId)
 
-        findById
-    }
+      const updatedTask = taskDomain.done(TaskMapper.toDomain(task), now)
 
+      const savedTask = await taskRepository.update(id, updatedTask, userId)
 
+      const routineCompleted = await routineService.checkRoutineCompleted(task.routineId, userId)
+
+      if (routineCompleted) {
+        await userService.addStar(userId)
+      }
+
+      const xp = metricsDomain.calculateTaskXP({
+        status: updatedTask.status,
+        plannedEnd: updatedTask.plannedEnd,
+        finishedAt: updatedTask.finishedAt,
+        category: updatedTask.category
+      })
+      await userService.addXp(userId, xp)
+
+      return TaskMapper.toResponse(savedTask)
+    },
+
+    delete: async (id: string, userId: string) => {
+      const now = new Date()
+      const task = await findById(id, userId)
+
+      const updated = taskDomain.cancel(TaskMapper.toDomain(task), now)
+      return await taskRepository.update(id, updated, userId)
+    },
+
+    findAll: async (userId: string) => {
+      return await taskRepository.findAll(userId)
+    },
+
+    findById
+  }
 }

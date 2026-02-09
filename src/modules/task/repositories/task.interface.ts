@@ -1,10 +1,11 @@
-import { TaskDomain, TaskResponse } from "@modules/task/domain";            
+import { TaskDomain, TaskModel } from "@modules/task/domain";
 
 export interface ITaskRepository {
-    save(task: TaskDomain): Promise<TaskResponse>;
-    update(id: string, task: TaskDomain): Promise<TaskResponse>;
-    findById(id: string): Promise<TaskResponse | null>;
-    delete(id: string): Promise<void>;
-    findAll(): Promise<TaskResponse[]>;
+    save(task: TaskDomain, userId: string): Promise<TaskModel>;
+    update(id: string, task: TaskDomain,userId:string): Promise<TaskModel>;
+    findById(id: string,userId:string): Promise<TaskModel | null>;
+    delete(id: string,userId:string): Promise<void>;
+    findAll(userId:string): Promise<TaskModel[]>;
+    findAllByRoutineId(routineId: string,userId:string): Promise<TaskModel[]>
 
 }

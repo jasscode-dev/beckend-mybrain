@@ -1,8 +1,10 @@
-import { UserDomain, UserResponse } from "@modules/user/domain";
+import { UserDomain, UserModel} from "@modules/user/domain";
 
 
 export interface IUserRepository {
-    addXp(user:UserResponse): Promise<UserResponse>;
-    update(user: UserResponse): Promise<UserResponse>;
-    findById(id: string): Promise<UserResponse | null>;
+   
+    save(user: UserDomain): Promise<UserModel>;
+    update(user: UserDomain,userId:string): Promise<UserModel>;
+    findById(userId: string): Promise<UserModel | null>;
+   
 }

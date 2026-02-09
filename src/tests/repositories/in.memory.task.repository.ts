@@ -1,34 +1,42 @@
-import { TaskDomain, TaskResponse } from "@modules/task/domain";
+import { TaskDomain, TaskModel } from "@modules/task/domain";
 import { ITaskRepository } from "@modules/task/repositories";
 
 
 
-export const InMemoryTaskRepository = (initialTasks: TaskResponse[] = []): ITaskRepository => {
-    const tasks: TaskResponse[] = [...initialTasks]
+export const InMemoryTaskRepository = (initialTasks: TaskModel[] = []): ITaskRepository => {
+    const tasks: TaskModel[] = [...initialTasks]
 
     return {
-        async update(id: string, task: Partial<TaskDomain>) {
-            const index = tasks.findIndex(t => t.id === id);
-            if (index === -1) throw new Error("Task not found");
-
+        async update(id: string, task:  TaskDomain,userId:string) {
+            const index = tasks.findIndex(t => t.id === id && t.userId === userId);
+            if (index === -1) throw new Error("Task not found or unauthorized");
             const updatedTask = {
                 ...tasks[index],
                 ...task,
-            } as TaskResponse;
-
+                updatedAt: new Date()
+            } as TaskModel;
             tasks[index] = updatedTask;
             return updatedTask;
         },
 
-        async findById(id: string) {
-            return tasks.find(t => t.id === id) ?? null;
+        async findById(id: string,userId:string) {
+            return tasks.find(t => t.id === id && t.userId === userId) ?? null;
         },
 
-        async save(task: TaskDomain) {
-            const created: TaskResponse = {
+        async save(task: TaskDomain,userId:string) {
+            const created: TaskModel = {
                 ...task,
+                userId,
                 id: crypto.randomUUID(),
-            } as TaskResponse;
+                status: 'PENDING',
+                startedAt: null,
+                finishedAt: null,
+                cancelledAt: null,
+                totalSeconds: 0,
+                actualDurationSec: 0,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            }
 
             tasks.push(created);
             return created;
@@ -43,6 +51,10 @@ export const InMemoryTaskRepository = (initialTasks: TaskResponse[] = []): ITask
             if (index !== -1) {
                 tasks.splice(index, 1);
             }
+        },
+        async findAllByRoutineId(routineId: string,userId:string) {
+            return tasks.filter(t => t.routineId === routineId && t.userId === userId);
         }
+
     }
 }

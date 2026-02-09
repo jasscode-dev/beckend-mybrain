@@ -1,5 +1,5 @@
 import { XP_CONFIG } from "@modules/metrics/domain";
-import {  UserDomain, UserInput, UserResponse } from "./user.type";
+import {  UserDomain, UserInput} from "./user.type";
 
 export const userDomain = {
     create: (input: UserInput): UserDomain => {
@@ -23,7 +23,7 @@ export const userDomain = {
         routines: [],
     })
 },
-addXp:(user:UserResponse, xpToAdd:number):UserResponse =>{
+addXp:(user:UserDomain, xpToAdd:number):UserDomain =>{
     if(xpToAdd <=0){
         return user;
     }
@@ -41,5 +41,17 @@ addXp:(user:UserResponse, xpToAdd:number):UserResponse =>{
         xp,
         level
     })
+},
+addStar:(user:UserDomain) : UserDomain =>{
+
+    const updated={
+        ...user,
+        stars : user.stars + 1
+    }
+
+    return Object.freeze(updated)
+
+
 }
+
 }

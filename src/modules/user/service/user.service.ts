@@ -1,24 +1,33 @@
 import { IUserRepository } from "@modules/user/repositories";
-import { userDomain, UserDomain, UserResponse } from "@modules/user/domain";
+import { userDomain, UserDomain, UserModel } from "@modules/user/domain";
 
-export const UserService =(
-    userRepository: IUserRepository)=> {
-        
+export const UserService = (
+    userRepository: IUserRepository) => {
+
     const findById = async (id: string) => {
         const user = await userRepository.findById(id)
         if (!user) throw new Error("User not found")
         return user
     }
 
-return{
+    return {
 
-    addXp: async (userId: string, xpToAdd: number) => {
-        const userFind = await findById(userId)
-        const updatedUser = userDomain.addXp(userFind, xpToAdd)     
-        return await userRepository.update(updatedUser)
-        
-      },
-      findById
-  } 
-  
+        addXp: async (userId: string, xpToAdd: number) => {
+            const userFind = await findById(userId)
+            const updatedUser = userDomain.addXp(userFind, xpToAdd)
+            return await userRepository.update(updatedUser,userId)
+        },
+        save: async (user: UserDomain) => {
+            return await userRepository.save(user)
+
+        },
+        findById,
+        addStar: async(userId:string)=>{
+            const userFind = await findById(userId)
+            const updatedUser = userDomain.addStar(userFind)
+            return await userRepository.update(updatedUser,userId)
+
+        }
+  }
+
 }

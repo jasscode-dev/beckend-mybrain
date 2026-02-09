@@ -1,4 +1,4 @@
-import { TaskResponse } from "@modules/task/domain"
+import { TaskModel } from "@modules/task/domain"
 
 import { TaskService } from "@modules/task/services/task.service"
 import { InMemoryRoutineRepository } from "../../repositories/in.memory.routine"
@@ -9,7 +9,7 @@ import { InMemoryUserRepository } from "../../repositories/in.memory.user.reposi
 describe("Done Task Integration Test", () => {
 
     it("should complete a task from PENDING", async () => {
-        const mockTask: TaskResponse = {
+        const mockTask: TaskModel = {
             id: "1",
             userId: "user-1",
             content: "Test task",
@@ -24,10 +24,29 @@ describe("Done Task Integration Test", () => {
             cancelledAt: null,
             totalSeconds: 0,
             actualDurationSec: 0,
+            createdAt: new Date(),
+            updatedAt: new Date()
         }
 
         const repository = InMemoryTaskRepository([mockTask])
-        const routineRepository = InMemoryRoutineRepository([])
+        const routineRepository = InMemoryRoutineRepository([
+            {
+                id: "routine-1",
+                userId: "user-1",
+                date: new Date(),
+                routineStatus: 'PENDING',
+                totalTasks: 1,
+                completedTasks: 0,
+                completionRate: 0,
+                starEarned: false,
+                xpEarned: 0,
+                tasks: [],
+                totalHoursPlanned: 1,
+                completedHoursPlanned: 0,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            }
+        ])
         const userRepository = InMemoryUserRepository([{
             userId: "user-1",
             name: "Test User",
@@ -37,7 +56,9 @@ describe("Done Task Integration Test", () => {
             level: 1,
             stars: 0,
             tulips: 0,
-            routines: []
+            routines: [],
+            createdAt: new Date(),
+            updatedAt: new Date()
 
 
         }])
@@ -45,18 +66,26 @@ describe("Done Task Integration Test", () => {
 
 
 
-        const task = await taskService.done("1")
+        const task = await taskService.done("1", "user-1")
 
         expect(task.status).toBe('DONE')
 
-        const updatedTask = await repository.findById("1")
+        const updatedTask = await repository.findById("1", "user-1")
         expect((updatedTask as any).finishedAt).toBeDefined()
         expect((updatedTask as any).status).toBe('DONE')
-        
+
+        const updatedRoutine = await routineRepository.findById("routine-1", "user-1")
+        expect(updatedRoutine?.routineStatus).toBe('DONE')
+        expect(updatedRoutine?.completedTasks).toBe(1)
+
+        const updatedUser = await userRepository.findById("user-1")
+        expect(updatedUser?.xp).toBeGreaterThan(0)
+        expect(updatedUser?.stars).toBe(1)
+
     })
 
     it("should complete a task from INPROGRESS and calculate final time", async () => {
-        const mockTask: TaskResponse = {
+        const mockTask: TaskModel = {
             id: "1",
             userId: "user-1",
             content: "Test task",
@@ -71,11 +100,30 @@ describe("Done Task Integration Test", () => {
             cancelledAt: null,
             totalSeconds: 0,
             actualDurationSec: 0,
+            createdAt: new Date(),
+            updatedAt: new Date()
         }
 
         const repository = InMemoryTaskRepository([mockTask])
-        const routineRepository = InMemoryRoutineRepository([])
-         const userRepository = InMemoryUserRepository([{
+        const routineRepository = InMemoryRoutineRepository([
+            {
+                id: "routine-1",
+                userId: "user-1",
+                date: new Date(),
+                routineStatus: 'PENDING',
+                totalTasks: 1,
+                completedTasks: 0,
+                completionRate: 0,
+                starEarned: false,
+                xpEarned: 0,
+                tasks: [],
+                totalHoursPlanned: 1,
+                completedHoursPlanned: 0,
+                createdAt: new Date(),
+                updatedAt: new Date()
+            }
+        ])
+        const userRepository = InMemoryUserRepository([{
             userId: "user-1",
             name: "Test User",
             email: "test@example.com",
@@ -84,7 +132,11 @@ describe("Done Task Integration Test", () => {
             level: 1,
             stars: 0,
             tulips: 0,
-            routines: []
+            routines: [],
+            createdAt: new Date(),
+            updatedAt: new Date()
+
+
 
 
         }])
@@ -96,19 +148,30 @@ describe("Done Task Integration Test", () => {
         await repository.update("1", {
             startedAt,
             totalSeconds: 0
-        } as any)
+        } as any, "user-1")
 
-        const task = await taskService.done("1")
+        const task = await taskService.done("1", "user-1")
 
         expect(task.status).toBe('DONE')
 
-        const updatedTask = await repository.findById("1")
+        const updatedTask = await repository.findById("1", "user-1")
         expect((updatedTask as any).actualDurationSec).toBeGreaterThanOrEqual(30)
         expect((updatedTask as any).finishedAt).toBeDefined()
+
+        const updatedRoutine = await routineRepository.findById("routine-1", "user-1")
+        console.log("routine", updatedRoutine)
+        expect(updatedRoutine?.routineStatus).toBe('DONE')
+        expect(updatedRoutine?.completedTasks).toBe(1)
+
+
+        const updatedUser = await userRepository.findById("user-1")
+        console.log("user", updatedUser)
+        expect(updatedUser?.xp).toBeGreaterThan(0)
+        expect(updatedUser?.stars).toBe(1)
     })
 
     it("should not complete a task if it is already done", async () => {
-        const mockTask: TaskResponse = {
+        const mockTask: TaskModel = {
             id: "1",
             userId: "user-1",
             content: "Test task",
@@ -123,6 +186,8 @@ describe("Done Task Integration Test", () => {
             finishedAt: new Date(),
             totalSeconds: 3680,
             actualDurationSec: 3680,
+            createdAt: new Date(),
+            updatedAt: new Date()
         }
 
         const repository = InMemoryTaskRepository([mockTask])
@@ -130,6 +195,6 @@ describe("Done Task Integration Test", () => {
         const userRepository = InMemoryUserRepository([])
         const taskService = TaskService(repository, routineRepository, userRepository)
 
-        await expect(taskService.done("1")).rejects.toThrow("Task is already done")
+        await expect(taskService.done("1", "user-1")).rejects.toThrow("Task is already done")
     })
 })

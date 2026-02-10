@@ -1,5 +1,6 @@
 import { IRoutineRepository } from "@modules/routine/repositories";
 import { ITaskRepository } from "@modules/task/repositories";
+import { taskDomain, TaskMapper } from "@modules/task/domain";
 
 export const RoutineService = (
     repository: IRoutineRepository,
@@ -13,10 +14,6 @@ export const RoutineService = (
         return routine
     }
 
-    const update = async (id: string, userId: string) => {
-        const updated = await repository.update(id, userId)
-        return updated
-    }
     return {
         getOrCreateDailyRoutine: async (userId: string, date: Date) => {
             const existingRoutine = await repository.findByUserAndDay(userId, date);
@@ -31,27 +28,36 @@ export const RoutineService = (
         checkRoutineCompleted: async (routineId: string, userId: string) => {
             const routine = await findById(routineId, userId)
             const stats = await repository.getRoutineStats(routine.id, userId)
-            if (stats.totalTasks === 0) return false
-            if (stats.completedTasks !== stats.totalTasks) return false
 
-            return await repository.makeDone(routine.id, userId)
+            if (stats.totalTasks === 0) return null
+            if (stats.completedTasks !== stats.totalTasks) return null
+
+
+            if (routine.status === 'DONE' || routine.status === 'INCOMPLETE') {
+                return null
+            }
+
+            return await repository.update(routine.id, userId, {
+                status: 'DONE',
+                finishedAt: new Date()
+            })
         },
 
         startRoutine: async (routineId: string, userId: string) => {
             const routine = await findById(routineId, userId)
-            if (routine.status !== 'PENDING') throw new Error("Routine cannot be started")
-            return await repository.startProcessing(routine.id, userId)
+
+            if (routine.status !== 'INPROGRESS' && routine.status !== 'INCOMPLETE') {
+                return await repository.update(routine.id, userId, {
+                    status: 'INPROGRESS',
+                    startedAt: new Date()
+                })
+            }
+
+            return routine
         },
 
-        failRoutine: async (routineId: string, userId: string) => {
-            const routine = await findById(routineId, userId)
-            if (routine.status === 'DONE' || routine.status === 'PARTIAL') {
-                throw new Error("Routine is already finished")
-            }
-            return await repository.makeFailed(routine.id, userId)
-        },
+
 
         findById,
-        update,
     }
 }

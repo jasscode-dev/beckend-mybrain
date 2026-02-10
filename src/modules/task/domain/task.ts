@@ -29,7 +29,6 @@ export const taskDomain = {
             plannedStart,
             plannedEnd,
             durationSec,
-            totalSeconds: 0,
             startedAt: null,
             finishedAt: null,
             cancelledAt: null,
@@ -53,14 +52,15 @@ export const taskDomain = {
         if (task.status !== 'INPROGRESS') throw new Error("Task is not running")
         if (!task.startedAt) throw new Error("Task is not running")
 
-        const difSec = Math.floor((now.getTime() - task.startedAt.getTime()) / 1000)
-        const totalSeconds = task.totalSeconds + difSec
+
+        const sessionDurationSec = Math.floor((now.getTime() - task.startedAt.getTime()) / 1000)
+        const actualDurationSec = (task.actualDurationSec || 0) + sessionDurationSec
 
         return {
             ...task,
             status: 'PAUSED' as const,
             startedAt: null,
-            totalSeconds,
+            actualDurationSec,
         }
     },
 
@@ -68,10 +68,11 @@ export const taskDomain = {
         if (task.status === 'DONE') throw new Error("Task is already done")
 
         const finishedAt = now
-        let totalSeconds = task.totalSeconds
+        let actualDurationSec = task.actualDurationSec || 0
 
         if (task.status === 'INPROGRESS' && task.startedAt) {
-            totalSeconds += Math.floor((finishedAt.getTime() - task.startedAt.getTime()) / 1000)
+            const sessionDurationSec = Math.floor((finishedAt.getTime() - task.startedAt.getTime()) / 1000)
+            actualDurationSec += sessionDurationSec
         }
 
         return {
@@ -79,8 +80,7 @@ export const taskDomain = {
             status: 'DONE' as const,
             finishedAt,
             startedAt: null,
-            totalSeconds,
-            actualDurationSec: totalSeconds,
+            actualDurationSec,
         }
     },
 
@@ -93,4 +93,7 @@ export const taskDomain = {
             cancelledAt: now,
         }
     },
+
+
 }
+

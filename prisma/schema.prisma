@@ -39,6 +39,8 @@ model Routine {
   status        RoutineStatus @default(PENDING)
 
   tasks         Task[]
+  startedAt     DateTime?
+  finishedAt    DateTime?
 
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -86,7 +88,7 @@ enum RoutineStatus {
   PENDING
   INPROGRESS
   DONE
-  PARTIAL
+  INCOMPLETE
 }
 
 enum StatusTask {

@@ -8,9 +8,5 @@ export interface IRoutineRepository {
     findAllByUser(userId: string): Promise<RoutineModel[]>;
     findById(id: string, userId: string): Promise<RoutineModel | null>;
     getRoutineStats(routineId: string, userId: string): Promise<RoutineStats>;
-    update(id: string, userId: string): Promise<RoutineModel>
-    makeDone(id: string, userId: string): Promise<boolean>
-    startProcessing(id: string, userId: string): Promise<boolean>
-    makeFailed(id: string, userId: string): Promise<boolean>
-
+    update(id: string, userId: string, data: Partial<Omit<RoutineModel, 'id' | 'userId' | 'createdAt' | 'tasks'>>): Promise<RoutineModel>;
 }

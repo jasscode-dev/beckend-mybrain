@@ -6,6 +6,8 @@ export type RoutineModel = {
     userId: string
     date: Date
     status: RoutineStatus
+    startedAt: Date | null
+    finishedAt: Date | null
     tasks?: TaskModel[]
     createdAt: Date
     updatedAt: Date
@@ -22,8 +24,8 @@ export type RoutineSummary = {
     stats: RoutineStats
 }
 export type UpdateRoutineResult = {
-  changedTo: 'DONE' | null
+    changedTo: 'DONE' | null
 }
 
 
-export type RoutineStatus = "PENDING" | "INPROGRESS" | "DONE" | "PARTIAL"
+export type RoutineStatus = "PENDING" | "INPROGRESS" | "DONE" | "INCOMPLETE"

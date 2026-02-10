@@ -5,43 +5,40 @@ import { IRoutineRepository } from "./routine.interface";
 export const RoutineRepository = (): IRoutineRepository => {
     return {
         async save(date: Date, userId: string): Promise<RoutineModel> {
-            const created = await prisma.routine.create({
+            return await prisma.routine.create({
                 data: {
                     userId,
                     date,
-                    status: 'PENDING',
                 }
             });
 
-            return created as RoutineModel;
         },
 
         async findByUserAndDay(userId: string, date: Date): Promise<RoutineModel | null> {
-            const routine = await prisma.routine.findFirst({
+            return await prisma.routine.findFirst({
                 where: {
                     userId,
                     date
                 }
             });
 
-            return routine as RoutineModel | null;
+
         },
 
         async findAllByUser(userId: string): Promise<RoutineModel[]> {
-            const routines = await prisma.routine.findMany({
+            return await prisma.routine.findMany({
                 where: { userId },
                 orderBy: { date: 'desc' }
             });
 
-            return routines as RoutineModel[];
+
         },
 
         async findById(id: string, userId: string): Promise<RoutineModel | null> {
-            const routine = await prisma.routine.findFirst({
+            return await prisma.routine.findFirst({
                 where: { id, userId }
             });
 
-            return routine as RoutineModel | null;
         },
 
         async getRoutineStats(routineId: string, userId: string): Promise<RoutineStats> {
@@ -70,64 +67,16 @@ export const RoutineRepository = (): IRoutineRepository => {
             };
         },
 
-        async update(id: string, userId: string): Promise<RoutineModel> {
-            const updated = await prisma.routine.update({
-                where: { id },
-                data: { updatedAt: new Date() }
-            });
-
-            return updated as RoutineModel;
-        },
-
-        async makeDone(id: string, userId: string): Promise<boolean> {
-
-            const result = await prisma.routine.updateMany({
-                where: {
-                    id,
-                    userId,
-                    status: { notIn: ['DONE', 'PARTIAL'] }
-                },
+        async update(id: string, userId: string, data: Partial<Omit<RoutineModel, 'id' | 'userId' | 'createdAt' | 'tasks'>>): Promise<RoutineModel> {
+            return await prisma.routine.update({
+                where: { id, userId },
                 data: {
-                    status: 'DONE',
+                    ...data,
                     updatedAt: new Date()
                 }
             });
 
-            return result.count === 1;
-        },
 
-        async startProcessing(id: string, userId: string): Promise<boolean> {
-            // Only allow transition to INPROGRESS from PENDING
-            const result = await prisma.routine.updateMany({
-                where: {
-                    id,
-                    userId,
-                    status: 'PENDING'
-                },
-                data: {
-                    status: 'INPROGRESS',
-                    updatedAt: new Date()
-                }
-            });
-
-            return result.count === 1;
-        },
-
-        async makeFailed(id: string, userId: string): Promise<boolean> {
-            // Only allow transition to PARTIAL if not already finished
-            const result = await prisma.routine.updateMany({
-                where: {
-                    id,
-                    userId,
-                    status: { notIn: ['DONE', 'PARTIAL'] }
-                },
-                data: {
-                    status: 'PARTIAL',
-                    updatedAt: new Date()
-                }
-            });
-
-            return result.count === 1;
         }
     };
 };

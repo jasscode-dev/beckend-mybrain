@@ -9,22 +9,28 @@ export const metricsDomain = {
             return 0;
         }
 
-        let xp = XP_CONFIG.baseTask;
 
+        if (input.actualDurationSec === 0) {
+            return 0;
+        }
+
+        const timeRatio = Math.min(input.actualDurationSec / input.durationSec, 1)
+
+        let xp = Math.floor(XP_CONFIG.baseTask * timeRatio)
+
+        xp += Math.floor((XP_CONFIG.categoryBonus[input.category] ?? 0) * timeRatio)
+
+        const completedFullTime = input.actualDurationSec >= input.durationSec
         const onTime =
+            completedFullTime &&
             !!input.finishedAt &&
             input.finishedAt <= input.plannedEnd;
-
-
 
         if (onTime) {
             xp += XP_CONFIG.onTimeBonus;
         }
 
-        xp += XP_CONFIG.categoryBonus[input.category] ?? 0
         return xp;
-
-
     },
     totalXp(user: UserDomain) {
         return user.xp + (user.level - 1) * XP_CONFIG.xpPerLevel;
@@ -32,7 +38,7 @@ export const metricsDomain = {
     progressToNextLevel: (user: UserDomain) => {
         return XP_CONFIG.xpPerLevel - user.xp
     },
-    
+
 
 
 

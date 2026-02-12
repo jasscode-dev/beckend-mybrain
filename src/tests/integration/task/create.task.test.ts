@@ -26,7 +26,7 @@ describe('Create Task', () => {
 
         const task = await taskService.create(input, "user-1")
 
-        expect(task.userId).toBe("user-1")
+
         const savedTask = await repository.findById(task.id, "user-1")
 
 

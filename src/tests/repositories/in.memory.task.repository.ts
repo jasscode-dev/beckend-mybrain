@@ -7,7 +7,7 @@ export const InMemoryTaskRepository = (initialTasks: TaskModel[] = []): ITaskRep
     const tasks: TaskModel[] = [...initialTasks]
 
     return {
-        async update(id: string, task:  TaskDomain,userId:string) {
+        async update(id: string, task: TaskDomain, userId: string) {
             const index = tasks.findIndex(t => t.id === id && t.userId === userId);
             if (index === -1) throw new Error("Task not found or unauthorized");
             const updatedTask = {
@@ -19,11 +19,11 @@ export const InMemoryTaskRepository = (initialTasks: TaskModel[] = []): ITaskRep
             return updatedTask;
         },
 
-        async findById(id: string,userId:string) {
+        async findById(id: string, userId: string) {
             return tasks.find(t => t.id === id && t.userId === userId) ?? null;
         },
 
-        async save(task: TaskDomain,userId:string) {
+        async save(task: TaskDomain, userId: string) {
             const created: TaskModel = {
                 ...task,
                 userId,
@@ -32,7 +32,6 @@ export const InMemoryTaskRepository = (initialTasks: TaskModel[] = []): ITaskRep
                 startedAt: null,
                 finishedAt: null,
                 cancelledAt: null,
-                totalSeconds: 0,
                 actualDurationSec: 0,
                 createdAt: new Date(),
                 updatedAt: new Date()
@@ -52,7 +51,7 @@ export const InMemoryTaskRepository = (initialTasks: TaskModel[] = []): ITaskRep
                 tasks.splice(index, 1);
             }
         },
-        async findAllByRoutineId(routineId: string,userId:string) {
+        async findAllByRoutineId(routineId: string, userId: string) {
             return tasks.filter(t => t.routineId === routineId && t.userId === userId);
         }
 

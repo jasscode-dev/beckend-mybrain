@@ -1,11 +1,10 @@
-import { RoutineModel } from "@modules/routine/domain";
+import { RoutineModel } from "@modules/routine/types/routine.types";
 
 export interface UserDomain extends UserInput {
     level: number;
     xp: number;
     stars: number;
     tulips: number;
-    routines: RoutineModel[]
 
 }
 
@@ -22,7 +21,10 @@ export interface LoginUserInput {
 
 
 export interface UserModel extends UserDomain {
-    userId: string;
+    id: string;
+    name: string;
+    email: string;
+    password: string;
     createdAt: Date;
     updatedAt: Date;
 }

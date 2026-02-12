@@ -26,11 +26,19 @@ export const TaskService = (
     return {
         create: async (input: TaskInput, userId: string) => {
             const date = normalizeDate(input.plannedStart)
+            console.log(date)
+            console.log(input.plannedStart)
 
             const routine = await routineService.getOrCreateDailyRoutine(userId, date)
-
-            const task = taskDomain.create(input, routine.id)
-            return await taskRepository.save(task, userId)
+            const statsdata = await routineService.getStatsByRoutine(routine.id, userId)
+            const task = await taskRepository.save(taskDomain.create(input, routine.id), userId)
+            console.log(statsdata)
+            const statusUpdated = { ...statsdata, totalTasks: statsdata.totalTasks + 1 }
+            console.log(statusUpdated)
+            return {
+                task,
+                stats: statusUpdated
+            }
         },
 
         start: async (id: string, userId: string) => {
@@ -52,8 +60,13 @@ export const TaskService = (
             const updated = taskDomain.start(TaskMapper.toDomain(task), now)
 
             await routineService.startRoutine(task.routineId, userId)
-
-            return await taskRepository.update(id, updated, userId)
+            const stats = await routineService.getStatsByRoutine(task.routineId, userId)
+            const savedTask = await taskRepository.update(id, updated, userId)
+            console.log(savedTask)
+            return {
+                task: savedTask,
+                stats
+            }
         },
 
         pause: async (id: string, userId: string) => {
@@ -72,7 +85,7 @@ export const TaskService = (
 
             const updatedTask = taskDomain.done(TaskMapper.toDomain(task), now)
 
-            await taskRepository.update(id, updatedTask, userId)
+            const savedTask = await taskRepository.update(id, updatedTask, userId)
 
             const routineCompleted = await routineService.checkRoutineCompleted(task.routineId, userId)
 
@@ -84,12 +97,17 @@ export const TaskService = (
                 status: updatedTask.status,
                 plannedEnd: updatedTask.plannedEnd,
                 finishedAt: updatedTask.finishedAt,
-                category: updatedTask.category
+                category: updatedTask.category,
+                actualDurationSec: updatedTask.actualDurationSec,
+                durationSec: updatedTask.durationSec
             })
             await userService.addXp(userId, xp)
+            const stats = await routineService.getStatsByRoutine(task.routineId, userId)
 
-            const savedTask = await findById(id, userId)
-            return TaskMapper.toResponse(savedTask!)
+            return {
+                task: savedTask,
+                stats
+            }
         },
 
         delete: async (id: string, userId: string) => {

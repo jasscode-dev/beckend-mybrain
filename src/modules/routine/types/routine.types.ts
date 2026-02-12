@@ -8,6 +8,7 @@ export type RoutineModel = {
     status: RoutineStatus
     startedAt: Date | null
     finishedAt: Date | null
+    cancelledAt: Date | null
     tasks?: TaskModel[]
     createdAt: Date
     updatedAt: Date
@@ -25,6 +26,22 @@ export type RoutineSummary = {
 }
 export type UpdateRoutineResult = {
     changedTo: 'DONE' | null
+}
+
+export type RoutineHighlights = {
+
+    perfectDays: number;
+    incompleteDays: number;
+    dailyPercentages: { day: number; percentage: number }[];
+}
+export type RoutineTaskStatsAggregate = {
+    _count: {
+        _all: number;
+    };
+    _sum: {
+        durationSec: number | null;
+        actualDurationSec: number | null;
+    };
 }
 
 

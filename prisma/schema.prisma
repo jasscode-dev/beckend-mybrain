@@ -21,8 +21,10 @@ model User {
   level     Int @default(1)
   xp        Int @default(0)
   stars     Int @default(0)
+  tulips    Int @default(0)
 
   routines  Routine[]
+  tasks     Task[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -34,13 +36,14 @@ model Routine {
   id            String        @id @default(cuid())
   userId        String
   user          User          @relation(fields: [userId], references: [id])
-  date          DateTime
+  date          DateTime @db.Date
 
   status        RoutineStatus @default(PENDING)
 
   tasks         Task[]
   startedAt     DateTime?
   finishedAt    DateTime?
+  cancelledAt   DateTime?
 
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -49,24 +52,30 @@ model Routine {
 }
 
 model Task {
-  id                 String      @id @default(cuid())
-  routineId           String
-  routine             Routine     @relation(fields: [routineId], references: [id])
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 
-  content             String
-  status              StatusTask  @default(PENDING)
-  category            Category
+  routineId String
+  routine   Routine  @relation(fields: [routineId], references: [id], onDelete: Cascade)
 
-  plannedStart        DateTime
-  plannedEnd          DateTime
-  durationSec         Int
-  startedAt           DateTime?
-  finishedAt          DateTime?
-  cancelledAt         DateTime?
-  actualDurationSec   Int
+  content   String
+  status    StatusTask @default(PENDING)
+  category  Category
 
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  plannedStart      DateTime
+  plannedEnd        DateTime
+  durationSec       Int
+  startedAt         DateTime?
+  finishedAt        DateTime?
+  cancelledAt       DateTime?
+  actualDurationSec Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([routineId])
 }
 
 model RewardLog {

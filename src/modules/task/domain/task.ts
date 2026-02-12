@@ -67,6 +67,7 @@ export const taskDomain = {
     done: (task: TaskDomain, now: Date): TaskDomain => {
         if (task.status === 'DONE') throw new Error("Task is already done")
 
+
         const finishedAt = now
         let actualDurationSec = task.actualDurationSec || 0
 
@@ -74,6 +75,9 @@ export const taskDomain = {
             const sessionDurationSec = Math.floor((finishedAt.getTime() - task.startedAt.getTime()) / 1000)
             actualDurationSec += sessionDurationSec
         }
+
+        // Limitar ao tempo planejado (protege contra task "esquecida" aberta)
+        actualDurationSec = Math.min(actualDurationSec, task.durationSec)
 
         return {
             ...task,

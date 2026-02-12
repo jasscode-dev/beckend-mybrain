@@ -1,6 +1,6 @@
 
 
-import { taskController } from "@/composition/task.composition";
+import { taskController } from "src/composition/task.composition";
 import { Router } from "express";
 
 
@@ -8,8 +8,8 @@ import { Router } from "express";
 const router = Router();
 
 router.post('/', taskController.create);
-router.get('/', taskController.findAll);
-router.get('/:id', taskController.findById);
 router.post('/:id/start', taskController.start);
+router.post('/:id/pause', taskController.pause);
+router.post('/:id/done', taskController.done);
 
 export default router

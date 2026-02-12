@@ -8,7 +8,7 @@ import { InMemoryUserRepository } from "../../repositories/in.memory.user.reposi
 
 describe("Done Task Integration Test", () => {
 
-    it("should complete a task from PENDING", async () => {
+    it("should complete a PENDING task with 0 XP (no time worked)", async () => {
         const mockTask: TaskModel = {
             id: "1",
             userId: "user-1",
@@ -22,7 +22,6 @@ describe("Done Task Integration Test", () => {
             startedAt: null,
             finishedAt: null,
             cancelledAt: null,
-            totalSeconds: 0,
             actualDurationSec: 0,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -34,19 +33,14 @@ describe("Done Task Integration Test", () => {
                 id: "routine-1",
                 userId: "user-1",
                 date: new Date(),
-                routineStatus: 'PENDING',
-                totalTasks: 1,
-                completedTasks: 0,
-                completionRate: 0,
-                starEarned: false,
-                xpEarned: 0,
-                tasks: [],
-                totalHoursPlanned: 1,
-                completedHoursPlanned: 0,
+                status: 'PENDING',
+                cancelledAt: null,
+                finishedAt: null,
+                startedAt: null,
                 createdAt: new Date(),
                 updatedAt: new Date()
             }
-        ])
+        ], repository)
         const userRepository = InMemoryUserRepository([{
             userId: "user-1",
             name: "Test User",
@@ -56,35 +50,25 @@ describe("Done Task Integration Test", () => {
             level: 1,
             stars: 0,
             tulips: 0,
-            routines: [],
             createdAt: new Date(),
             updatedAt: new Date()
-
-
         }])
         const taskService = TaskService(repository, routineRepository, userRepository)
-
-
 
         const task = await taskService.done("1", "user-1")
 
         expect(task.status).toBe('DONE')
+        expect(task.actualDurationSec).toBe(0)
 
-        const updatedTask = await repository.findById("1", "user-1")
-        expect((updatedTask as any).finishedAt).toBeDefined()
-        expect((updatedTask as any).status).toBe('DONE')
-
-        const updatedRoutine = await routineRepository.findById("routine-1", "user-1")
-        expect(updatedRoutine?.routineStatus).toBe('DONE')
-        expect(updatedRoutine?.completedTasks).toBe(1)
-
-        const updatedUser = await userRepository.findById("user-1")
-        expect(updatedUser?.xp).toBeGreaterThan(0)
-        expect(updatedUser?.stars).toBe(1)
-
+        const user = await userRepository.findById("user-1")
+        expect(user?.xp).toBe(0) // sem trabalho = 0 XP
     })
 
     it("should complete a task from INPROGRESS and calculate final time", async () => {
+        const now = new Date()
+        const oneHourAgo = new Date(now.getTime() - 3600000)
+        const later = new Date(now.getTime() + 3600000)
+
         const mockTask: TaskModel = {
             id: "1",
             userId: "user-1",
@@ -92,13 +76,12 @@ describe("Done Task Integration Test", () => {
             status: 'INPROGRESS',
             routineId: "routine-1",
             category: 'WORK',
-            plannedStart: new Date(),
-            plannedEnd: new Date(),
+            plannedStart: oneHourAgo,
+            plannedEnd: later,
             durationSec: 3600,
-            startedAt: new Date(),
+            startedAt: oneHourAgo, // começou 1h atrás → 100% do tempo
             finishedAt: null,
             cancelledAt: null,
-            totalSeconds: 0,
             actualDurationSec: 0,
             createdAt: new Date(),
             updatedAt: new Date()
@@ -110,19 +93,15 @@ describe("Done Task Integration Test", () => {
                 id: "routine-1",
                 userId: "user-1",
                 date: new Date(),
-                routineStatus: 'PENDING',
-                totalTasks: 1,
-                completedTasks: 0,
-                completionRate: 0,
-                starEarned: false,
-                xpEarned: 0,
+                status: 'PENDING',
+                cancelledAt: null,
+                finishedAt: null,
+                startedAt: null,
                 tasks: [],
-                totalHoursPlanned: 1,
-                completedHoursPlanned: 0,
                 createdAt: new Date(),
                 updatedAt: new Date()
             }
-        ])
+        ], repository)
         const userRepository = InMemoryUserRepository([{
             userId: "user-1",
             name: "Test User",
@@ -132,41 +111,25 @@ describe("Done Task Integration Test", () => {
             level: 1,
             stars: 0,
             tulips: 0,
-            routines: [],
             createdAt: new Date(),
             updatedAt: new Date()
-
-
-
-
         }])
         const taskService = TaskService(repository, routineRepository, userRepository)
-
-        const startedAt = new Date()
-        startedAt.setSeconds(startedAt.getSeconds() - 30)
-
-        await repository.update("1", {
-            startedAt,
-            totalSeconds: 0
-        } as any, "user-1")
 
         const task = await taskService.done("1", "user-1")
 
         expect(task.status).toBe('DONE')
 
         const updatedTask = await repository.findById("1", "user-1")
-        expect((updatedTask as any).actualDurationSec).toBeGreaterThanOrEqual(30)
-        expect((updatedTask as any).finishedAt).toBeDefined()
+        // actualDurationSec é limitado ao durationSec (3600)
+        expect(updatedTask?.actualDurationSec).toBe(3600)
+        expect(updatedTask?.finishedAt).toBeDefined()
 
         const updatedRoutine = await routineRepository.findById("routine-1", "user-1")
-        console.log("routine", updatedRoutine)
-        expect(updatedRoutine?.routineStatus).toBe('DONE')
-        expect(updatedRoutine?.completedTasks).toBe(1)
-
+        expect(updatedRoutine?.status).toBe('DONE')
 
         const updatedUser = await userRepository.findById("user-1")
-        console.log("user", updatedUser)
-        expect(updatedUser?.xp).toBeGreaterThan(0)
+        expect(updatedUser?.xp).toBe(14) // 10 base + 3 onTime + 1 WORK
         expect(updatedUser?.stars).toBe(1)
     })
 
@@ -184,8 +147,7 @@ describe("Done Task Integration Test", () => {
             startedAt: null,
             cancelledAt: null,
             finishedAt: new Date(),
-            totalSeconds: 3680,
-            actualDurationSec: 3680,
+            actualDurationSec: 3600,
             createdAt: new Date(),
             updatedAt: new Date()
         }

@@ -29,6 +29,7 @@ export interface TaskDomain extends TaskInput {
 
 export interface TaskModel {
     id: string;
+    userId: string;
     content: string;
     routineId: string;
     category: Category;

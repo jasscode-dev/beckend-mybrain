@@ -19,9 +19,7 @@ export const TaskMapper = {
     toResponse: (task: TaskModel) => {
         return {
             id: task.id,
-
             content: task.content,
-            routineId: task.routineId,
             category: task.category,
             plannedStart: task.plannedStart,
             plannedEnd: task.plannedEnd,
@@ -31,8 +29,7 @@ export const TaskMapper = {
             finishedAt: task.finishedAt,
             cancelledAt: task.cancelledAt,
             actualDurationSec: task.actualDurationSec,
-            createdAt: task.createdAt,
-            updatedAt: task.updatedAt,
+
         }
 
     }

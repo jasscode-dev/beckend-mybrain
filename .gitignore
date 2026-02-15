@@ -64,3 +64,4 @@ coverage/
 .eslintc
 .anotation.txt
 /src/generated/prisma
+./README.md

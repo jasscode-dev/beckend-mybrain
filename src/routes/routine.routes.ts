@@ -3,7 +3,7 @@ import { Router } from "express";
 
 const router = Router();
 
-router.post('/:date/tasks', routineController.addTask);
+router.post('/:date/tasks', routineController.create);
 router.get('/:date', routineController.getByDate);
 router.get('/', routineController.getAllRoutines);
 

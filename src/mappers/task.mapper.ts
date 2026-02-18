@@ -10,6 +10,7 @@ export const TaskMapper = {
             status: task.status,
             category: task.category,
             durationSec: task.durationSec,
+            actualDurationSec: task.actualDurationSec,
 
         }
     },

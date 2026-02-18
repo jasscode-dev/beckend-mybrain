@@ -36,7 +36,7 @@ model Routine {
   id            String        @id @default(cuid())
   userId        String
   user          User          @relation(fields: [userId], references: [id])
-  date          DateTime @db.Date
+  date          DateTime 
 
   status        RoutineStatus @default(PENDING)
 
@@ -96,7 +96,7 @@ enum RewardType {
 enum RoutineStatus {
   PENDING
   INPROGRESS
-  DONE
+  COMPLETED
   INCOMPLETE
 }
 

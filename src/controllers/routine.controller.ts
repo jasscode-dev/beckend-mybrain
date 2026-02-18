@@ -13,13 +13,18 @@ export const RoutineController = (
     const routineService = RoutineService(routineRepository, taskRepository);
     return {
 
-        addTask: async (req: Request, res: Response) => {
+       create: async (req: Request, res: Response) => {
             const userId = "ckxq9kz3v0000z8m1f3q9p8a1";
             // TODO: get from token
 
             const { content, plannedStart, plannedEnd, category } = req.body
-            const date = req.params.date as string
-            const data = await routineService.addTask(date, { content, plannedStart, plannedEnd, category }, userId)
+            const dateStr = req.params.date as string
+            const date = new Date(dateStr)
+            
+            const data = await routineService.create(userId,
+                {content, plannedStart, plannedEnd, category},
+                date
+            )
             if (!data.routine) return res.status(200).json([])
             console.log(data)
             return res.status(201).json({

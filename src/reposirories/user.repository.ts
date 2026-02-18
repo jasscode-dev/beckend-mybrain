@@ -1,7 +1,7 @@
 import { prisma } from "src/lib/prisma";
 import { UserDomain, UserModel } from "src/types/user.type";
 
-interface IUserRepository {
+export interface IUserRepository {
     save(user: UserDomain): Promise<UserModel>;
     update(user: UserDomain, userId: string): Promise<UserModel>;
     findById(userId: string): Promise<UserModel | null>;
@@ -32,9 +32,9 @@ export const UserRepository = (): IUserRepository => {
 
         },
 
-        async findById(userId: string): Promise<UserModel | null> {
+        async findById(id: string): Promise<UserModel | null> {
             return prisma.user.findUnique({
-                where: { id: userId },
+                where: { id },
 
             });
 

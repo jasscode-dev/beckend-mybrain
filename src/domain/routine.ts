@@ -1,5 +1,8 @@
+import { normalize } from "node:path";
 import { RoutineDomain, RoutineStatus } from "src/types/routine.type";
 import { TaskDomain } from "src/types/task.type";
+import { normalizeDate } from "src/utils/date";
+import { th } from "zod/v4/locales";
 
 export const Routine = {
     create: (date: Date): RoutineDomain => {
@@ -22,6 +25,7 @@ export const Routine = {
             throw new Error("Routine can only be started if it is pending.");
         }
 
+
         return {
             ...routine,
             status: 'INPROGRESS' as const,
@@ -29,40 +33,52 @@ export const Routine = {
         };
     },
 
-    finish: (routine: RoutineDomain, now: Date): RoutineDomain => {
+    finish: (routine: RoutineDomain, now: Date, totalTaskDone: number): RoutineDomain => {
         if (routine.status !== 'INPROGRESS') {
             throw new Error("Routine can only be finished if it is in progress.");
         }
 
-        const allTasksDone = routine.tasks.every(task => task.status === 'DONE');
+        if (routine.tasks.length === totalTaskDone) {
+            routine.status = 'COMPLETED'
+            routine.finishedAt = now
+        }
 
         return {
             ...routine,
-            status: allTasksDone ? ('DONE' as const) : ('INCOMPLETE' as const),
-            finishedAt: now,
+
         };
     },
 
     cancel: (routine: RoutineDomain, now: Date): RoutineDomain => {
-        if (routine.status === 'DONE') {
+        if (routine.status === 'COMPLETED') {
             throw new Error("Cannot cancel a completed routine.");
         }
 
         return {
             ...routine,
-            // Per schema, there is no CANCELLED status for a Routine, so INCOMPLETE is used.
             status: 'INCOMPLETE' as const,
             cancelledAt: now,
         };
     },
 
-    addTask: (routine: RoutineDomain, task: TaskDomain): RoutineDomain => {
-        if (routine.status !== 'PENDING') {
-            throw new Error("Tasks can only be added to a pending routine.");
+    addTask: (routine: RoutineDomain, task: TaskDomain, now: Date): RoutineDomain => {
+
+        const routineDate = normalizeDate(routine.date)
+        const today = normalizeDate(now)
+        if (routineDate < today) {
+            throw new Error("Cannot add tasks to a past routine.")
         }
+
+        if (routine.status == 'COMPLETED') {
+            routine.status = 'INPROGRESS'
+            routine.finishedAt = null
+
+        }
+
         return {
             ...routine,
             tasks: [...routine.tasks, task],
+
         };
     },
 };

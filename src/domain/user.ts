@@ -1,4 +1,5 @@
-import { UserDomain, UserInput, XP_CONFIG, TaskXpInput } from "./user.type";
+import { TaskXpInput, UserDomain, UserInput, XP_CONFIG } from "src/types/user.type"
+
 
 export const userDomain = {
     create: (input: UserInput): UserDomain => {

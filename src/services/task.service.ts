@@ -3,12 +3,18 @@ import { Task } from "src/domain/task";
 import { ITaskRepository } from "src/reposirories/task.repository";
 import { RoutineService } from "./routine.service";
 import { IRoutineRepository } from "src/reposirories/routine.repository";
+import { IUserRepository } from "src/reposirories/user.repository";
+import { UserService } from "./user.service";
 
 export const TaskService = (
     taskRepository: ITaskRepository,
-    routineRepository: IRoutineRepository
+    routineRepository: IRoutineRepository,
+    userRepository: IUserRepository
 ) => {
     const routineService = RoutineService(routineRepository, taskRepository)
+    const userService = UserService(userRepository)
+
+
 
     const start = async (taskId: string, userId: string) => {
         const rawTask = await findById(taskId, userId)
@@ -21,12 +27,13 @@ export const TaskService = (
 
             )
 
-        routineService.start(updatedTask.routineId, userId)
+        const routine = await routineService.start(updatedTask.routineId, userId)
 
-        const routine = await routineService.findById(updatedTask.routineId, userId)
+        /*  const routine = await routineService.findById(updatedTask.routineId, userId) */
 
 
         const stats = await routineService.getStatsByRoutine(updatedTask.routineId, userId)
+
         return {
             routine,
             stats
@@ -42,8 +49,29 @@ export const TaskService = (
                 rawTask.id
 
             )
-        const routine = routineService.findById(updatedTask.routineId, userId)
+        const routine = await routineService.findById(updatedTask.routineId, userId)
         const stats = await routineService.getStatsByRoutine(updatedTask.routineId, userId)
+        return {
+            routine,
+            stats
+        }
+    }
+    const done = async (taskId: string, userId: string) => {
+        const rawTask = await findById(taskId, userId)
+        const now = new Date()
+        const taskDomain = Task.done(rawTask, now)
+
+        const updatedTask = await taskRepository.
+            update(
+                taskDomain,
+                userId,
+                rawTask.id
+
+            )
+        const userXp = await userService.processTaskReward(userId, updatedTask)
+        const routine = await routineService.completedRoutine(updatedTask.routineId, userId)
+        const stats = await routineService.getStatsByRoutine(updatedTask.routineId, userId)
+        console.log(userXp)
         return {
             routine,
             stats
@@ -58,7 +86,9 @@ export const TaskService = (
     }
     return {
         start,
-        findById
+        findById,
+        pause,
+        done
     }
 
 

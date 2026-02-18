@@ -41,4 +41,4 @@ export type UpdateRoutineResult = {
 
 
 
-export type RoutineStatus = "PENDING" | "INPROGRESS" | "DONE" | "INCOMPLETE"
+export type RoutineStatus = "PENDING" | "INPROGRESS" | "COMPLETED" | "INCOMPLETE"

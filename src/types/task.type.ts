@@ -14,7 +14,6 @@ export interface TaskInput {
 
 
 export interface TaskDomain extends TaskInput {
-    routineId: string;
     status: StatusTask;
     durationSec: number;
     startedAt: Date | null;

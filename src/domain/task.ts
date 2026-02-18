@@ -26,7 +26,6 @@ export const Task = {
         return Object.freeze({
             content: input.content,
             status: 'PENDING',
-            routineId,
             plannedStart,
             plannedEnd,
             durationSec,
@@ -59,7 +58,7 @@ export const Task = {
 
         return {
             ...task,
-            status: 'PAUSED' as const,
+            status: 'PAUSED'    as const,
             startedAt: null,
             actualDurationSec,
         }
@@ -77,7 +76,7 @@ export const Task = {
             actualDurationSec += sessionDurationSec
         }
 
-        // Limitar ao tempo planejado (protege contra task "esquecida" aberta)
+     
         actualDurationSec = Math.min(actualDurationSec, task.durationSec)
 
         return {

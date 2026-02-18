@@ -65,3 +65,4 @@ coverage/
 .anotation.txt
 /src/generated/prisma
 ./README.md
+./dev.db

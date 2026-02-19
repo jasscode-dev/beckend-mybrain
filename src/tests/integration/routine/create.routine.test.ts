@@ -1,11 +1,10 @@
 
-import { RoutineController } from "@modules/routine/controllers/routine.controller";
-import { RoutineService } from "@modules/routine/services/routine.service";
-import { TaskInput } from "@modules/task/domain";
+
+import { RoutineController } from "src/controllers/routine.controller";
 import { InMemoryRoutineRepository } from "src/tests/repositories/in.memory.routine";
 import { InMemoryTaskRepository } from "src/tests/repositories/in.memory.task.repository";
 
-// Mock Request and Response
+
 const mockRequest = (params: any, body: any) => ({
     params,
     body
@@ -30,11 +29,11 @@ describe('Add Task to Routine via Date Route', () => {
     });
 
     it('should create a routine if it does not exist and add the task', async () => {
-        const date = '2026-02-13';
+        const date = '2026-02-19';
         const taskInput = {
             content: 'New Task',
-            plannedStart: '2026-02-13T10:00:00Z',
-            plannedEnd: '2026-02-13T11:00:00Z',
+            plannedStart: '2026-02-19T10:00:00Z',
+            plannedEnd: '2026-02-19T11:00:00Z',
             category: 'WORK'
         };
 
@@ -49,7 +48,7 @@ describe('Add Task to Routine via Date Route', () => {
         const routine = await routineRepository.findByUserAndDay('ckxq9kz3v0000z8m1f3q9p8a1', new Date(date));
         expect(routine).toBeDefined();
 
-        // Check if task was added
+
         const tasks = await taskRepository.findAllByRoutineId(routine.id, 'ckxq9kz3v0000z8m1f3q9p8a1');
         expect(tasks).toHaveLength(1);
         expect(tasks[0].content).toBe('New Task');

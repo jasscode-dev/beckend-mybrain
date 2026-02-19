@@ -1,3 +1,4 @@
+import { AppError } from "src/errors/appError"
 import { TaskDomain, TaskInput } from "src/types/task.type"
 
 
@@ -7,18 +8,18 @@ export const Task = {
         const plannedEnd = new Date(input.plannedEnd)
 
         if (!input.content || input.content.trim().length < 2) {
-            throw new Error("Content must have at least 2 characters")
+            throw new AppError("Content must have at least 2 characters")
         }
 
         if (
             Number.isNaN(plannedStart.getTime()) ||
             Number.isNaN(plannedEnd.getTime())
         ) {
-            throw new Error("Invalid date format")
+            throw new AppError("Invalid date format")
         }
 
         if (plannedEnd.getTime() <= plannedStart.getTime()) {
-            throw new Error("PlannedEnd must be after plannedStart")
+            throw new AppError("PlannedEnd must be after plannedStart")
         }
 
         const durationSec = Math.floor((plannedEnd.getTime() - plannedStart.getTime()) / 1000)
@@ -49,8 +50,8 @@ export const Task = {
     },
 
     pause: (task: TaskDomain, now: Date) => {
-        if (task.status !== 'INPROGRESS') throw new Error("Task is not running")
-        if (!task.startedAt) throw new Error("Task is not running")
+        if (task.status !== 'INPROGRESS') throw new AppError("Task is not running")
+        if (!task.startedAt) throw new AppError("Task is not running")
 
 
         const sessionDurationSec = Math.floor((now.getTime() - task.startedAt.getTime()) / 1000)
@@ -65,7 +66,7 @@ export const Task = {
     },
 
     done: (task: TaskDomain, now: Date): TaskDomain => {
-        if (task.status === 'DONE') throw new Error("Task is already done")
+        if (task.status === 'DONE') throw new AppError("Task is already done")
 
 
         const finishedAt = now
@@ -89,7 +90,7 @@ export const Task = {
     },
 
     cancel: (task: TaskDomain, now: Date) => {
-        if (task.status === 'DONE') throw new Error("Task is already done")
+        if (task.status === 'DONE') throw new AppError("Task is already done")
 
         return {
             ...task,

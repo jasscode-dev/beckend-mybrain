@@ -5,6 +5,7 @@ import { RoutineService } from "./routine.service";
 import { IRoutineRepository } from "src/reposirories/routine.repository";
 import { IUserRepository } from "src/reposirories/user.repository";
 import { UserService } from "./user.service";
+import { AppError } from "src/errors/appError";
 
 export const TaskService = (
     taskRepository: ITaskRepository,
@@ -80,8 +81,8 @@ export const TaskService = (
 
     const findById = async (taskId: string, userId: string) => {
         const task = await taskRepository.findById(taskId, userId)
-        if (!task) throw new Error("Task not found")
-        if (task.userId !== userId) throw new Error("Unauthorized")
+        if (!task) throw new AppError("Task not found")
+        if (task.userId !== userId) throw new AppError("Unauthorized")
         return task
     }
     return {

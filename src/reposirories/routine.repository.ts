@@ -95,7 +95,7 @@ export const RoutineRepository = (): IRoutineRepository => {
         },
 
         async findByUserAndDay(userId: string, date: Date): Promise<RoutineModel | null> {
-
+               console.log(date)
             return await prisma.routine.findFirst({
 
                 where: {

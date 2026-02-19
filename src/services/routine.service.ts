@@ -1,6 +1,7 @@
 
 import { Routine } from "src/domain/routine";
 import { Task } from "src/domain/task";
+import { AppError } from "src/errors/appError";
 import { RoutineMapper } from "src/mappers/routine.mapper";
 import { IRoutineRepository } from "src/reposirories/routine.repository";
 import { ITaskRepository } from "src/reposirories/task.repository";
@@ -16,8 +17,8 @@ export const RoutineService = (
 
     const findById = async (id: string, userId: string) => {
         const routine = await repository.findById(id, userId);
-        if (!routine) throw new Error("Routine not found");
-        if (routine.userId !== userId) throw new Error("Unauthorized");
+        if (!routine) throw new AppError("Routine not found");
+        if (routine.userId !== userId) throw new AppError("Unauthorized");
         return routine;
     }
 
@@ -47,8 +48,8 @@ export const RoutineService = (
         };
     }
 
-    const getOrCreateDailyRoutine = async (userId: string, dateStr: Date) => {
-        const date = normalizeDate(new Date(dateStr));
+    const getOrCreateDailyRoutine = async (userId: string, date: Date) => {
+
         const existingRoutine = await repository.findByUserAndDay(userId, date);
         if (existingRoutine) return existingRoutine;
         return await repository.create(date, userId);
@@ -57,8 +58,9 @@ export const RoutineService = (
 
 
     return {
-        create: async (userId: string, taskInput: TaskInput, dateStr: Date) => {
-            const routineData = await getOrCreateDailyRoutine(userId, dateStr)
+        create: async (userId: string, taskInput: TaskInput, date: Date) => {
+            console.log(date)
+            const routineData = await getOrCreateDailyRoutine(userId, date)
 
             const newTask = Task.create(taskInput, routineData.id)
 
@@ -85,11 +87,11 @@ export const RoutineService = (
 
         },
 
-        findByDay: async (userId: string, dateStr: string) => {
-            const date = normalizeDate(new Date(dateStr));
+        findByDay: async (userId: string, date: Date) => {
+
             const routine = await repository.findByUserAndDayWithTasks(userId, date);
             if (!routine) return null;
-            if (routine?.userId !== userId) throw new Error("Unauthorized");
+            if (routine?.userId !== userId) throw new AppError("Unauthorized");
             const stats = await getStatsByRoutine(routine.id, userId);
             return {
                 routine,
@@ -106,8 +108,8 @@ export const RoutineService = (
             const updatedDomain = Routine.start(
                 RoutineMapper.modelToDomain(routine),
                 new Date());
-            return await repository.update(routineId, userId,
-                RoutineMapper.domainToPersistence(updatedDomain));
+            return await repository.update(routineId, userId, updatedDomain
+            );
         },
         completedRoutine: async (routineId: string, userId: string) => {
             const routine = await findById(routineId, userId)
@@ -120,7 +122,7 @@ export const RoutineService = (
                 dones
             );
             return await repository.update(routineId, userId,
-                RoutineMapper.domainToPersistence(updatedDomain));
+                updatedDomain);
 
         },
         /* finish: async (routineId: string, userId: string) => {

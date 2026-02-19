@@ -6,10 +6,9 @@ const config: Config = {
   testMatch: ["**/*.test.ts"],
 
   moduleNameMapper: {
-    "^@modules/(.*)$": "<rootDir>/src/modules/$1",
-    "^@shared/(.*)$": "<rootDir>/src/shared/$1",
-    "^@config/(.*)$": "<rootDir>/src/config/$1"
-  }
+    "^src/(.*)$": "<rootDir>/src/$1",
+  },
+  modulePaths:["<rootDir>"]
 };
 
 export default config;

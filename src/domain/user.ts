@@ -1,16 +1,17 @@
+import { AppError } from "src/errors/appError"
 import { TaskXpInput, UserDomain, UserInput, XP_CONFIG } from "src/types/user.type"
 
 
 export const userDomain = {
     create: (input: UserInput): UserDomain => {
         if (!input.name || input.name.trim().length < 2) {
-            throw new Error("Name must have at least 2 characters")
+            throw new AppError("Name must have at least 2 characters")
         }
         if (!input.email || input.email.trim().length < 2) {
-            throw new Error("Email must have at least 2 characters")
+            throw new AppError("Email must have at least 2 characters")
         }
         if (!input.password || input.password.trim().length < 2) {
-            throw new Error("Password must have at least 2 characters")
+            throw new AppError("Password must have at least 2 characters")
         }
         return Object.freeze({
             name: input.name,

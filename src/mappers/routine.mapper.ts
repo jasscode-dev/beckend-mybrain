@@ -1,6 +1,7 @@
+import { Prisma } from "src/generated/prisma"
 import { TaskMapper } from "./task.mapper"
 import { RoutineDomain, RoutineModel } from "src/types/routine.type"
-import { Prisma } from "@prisma/client"
+
 
 export const RoutineMapper = {
 

@@ -16,7 +16,7 @@ export const UserService = (userRepository: IUserRepository) => {
     }
     const processTaskReward = async (userId: string, taskData: TaskModel) => {
         const user = await findById(userId)
-       
+
 
         const xpGained = userDomain.calculateTaskXP(taskData);
         console.log("xp ganho", xpGained)
@@ -41,8 +41,8 @@ export const UserService = (userRepository: IUserRepository) => {
 
 
     return {
-        
-     findById,
-     processTaskReward,
+
+        findById,
+        processTaskReward,
     }
 };

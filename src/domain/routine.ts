@@ -1,4 +1,5 @@
 import { normalize } from "node:path";
+import { AppError } from "src/errors/appError";
 import { RoutineDomain, RoutineStatus } from "src/types/routine.type";
 import { TaskDomain } from "src/types/task.type";
 import { normalizeDate } from "src/utils/date";
@@ -22,7 +23,7 @@ export const Routine = {
 
     start: (routine: RoutineDomain, now: Date): RoutineDomain => {
         if (routine.status !== 'PENDING') {
-            throw new Error("Routine can only be started if it is pending.");
+            throw new AppError("Routine can only be started if it is pending.");
         }
 
 
@@ -35,7 +36,7 @@ export const Routine = {
 
     finish: (routine: RoutineDomain, now: Date, totalTaskDone: number): RoutineDomain => {
         if (routine.status !== 'INPROGRESS') {
-            throw new Error("Routine can only be finished if it is in progress.");
+            throw new AppError("Routine can only be finished if it is in progress.");
         }
 
         if (routine.tasks.length === totalTaskDone) {
@@ -51,7 +52,7 @@ export const Routine = {
 
     cancel: (routine: RoutineDomain, now: Date): RoutineDomain => {
         if (routine.status === 'COMPLETED') {
-            throw new Error("Cannot cancel a completed routine.");
+            throw new AppError("Cannot cancel a completed routine.");
         }
 
         return {
@@ -66,7 +67,7 @@ export const Routine = {
         const routineDate = normalizeDate(routine.date)
         const today = normalizeDate(now)
         if (routineDate < today) {
-            throw new Error("Cannot add tasks to a past routine.")
+            throw new AppError("Cannot add tasks to a past routine.")
         }
 
         if (routine.status == 'COMPLETED') {

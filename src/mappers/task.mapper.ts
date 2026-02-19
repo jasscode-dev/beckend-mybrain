@@ -22,7 +22,6 @@ export const TaskMapper = {
             status: task.status,
             category: task.category,
             durationSec: task.durationSec,
-            routineId: task.routineId,
             startedAt: task.startedAt,
             finishedAt: task.finishedAt,
             cancelledAt: task.cancelledAt,

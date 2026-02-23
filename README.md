@@ -5,92 +5,22 @@ Welcome to the **MyBrain** Backend API. This documentation covers all available 
 ---
 
 ## 📑 Table of Contents
-- [✨ Performance & Highlights](#-performance--highlights)
-- [📅 Daily Routine](#-daily-routine)
+
+- [📅 Routine Management](#-routine-management)
 - [✅ Task Management](#-task-management)
-- [👤 User Profile](#-user-profile)
-- [🔐 Authentication & Errors](#-authentication--errors)
 
 ---
 
-## ✨ Performance & Highlights
-Advanced metrics and productivity highlights for a given period.
+## 📅 Routine Management
 
-### `GET /stats/highlights`
-- **Description:** Retrieve productivity scores, streaks, and total achievements.
-- **Auth:** `Bearer Token` (Mocked)
-- **Query Parameters:**
-  | Parameter | Type | Required | Description |
-  | :--- | :--- | :--- | :--- |
-  | `period` | `string` | No | `day`, `week`, `month`, or `all` (default) |
-
-- **Response:** `200 OK`
-  ```json
-  {
-    "perfectDays": 12,
-    "incompleteDays": 3,
-    "dailyPercentages": [
-      { "day": 13, "percentage": 100 },
-      { "day": 14, "percentage": 85 }
-    ],
-    "totalStars": 150,
-    "tulips": 45
-  }
-  ```
-
----
-
-## 📅 Daily Routine
 Manage the core of your daily commitment and consistency.
 
-### `GET /routine/today`
-- **Description:** Get today's active routine, tasks, and real-time stats.
-- **Auth:** `Bearer Token`
-- **Response:** `200 OK`
-  ```json
-  {
-    "routine": {
-      "id": "rid_2026",
-      "date": "2026-02-13T00:00:00.000Z",
-      "status": "INPROGRESS",
-      "tasks": [
-        { "id": "tid_01", "content": "Morning Review", "status": "DONE" }
-      ]
-    },
-    "stats": {
-      "totalTasks": 8,
-      "completedTasks": 3,
-      "completionRate": 38,
-      "totalSecondsPlanned": 28800,
-      "completedSeconds": 10800
-    }
-  }
-  ```
+### `POST /routines/:date/tasks`
 
-### `GET /routine/calendar`
-- **Description:** Monthly overview of routine completion status.
-- **Query Parameters:**
-  | Parameter | Type | Required | Description |
-  | :--- | :--- | :--- | :--- |
-  | `month` | `number` | Yes | 1 to 12 |
-  | `year` | `number` | Yes | e.g., 2026 |
+- **Description:** Create a routine for a specific date (if not exists) and add a task to it.
+- **Params:** `date` (YYYY-MM-DD or ISO string)
+- **Body:**
 
-- **Response:** `200 OK`
-  ```json
-  [
-    { "date": "2026-02-13", "status": "DONE" },
-    { "date": "2026-02-14", "status": "PENDING" }
-  ]
-  ```
-
----
-
-## ✅ Task Management
-Individual task lifecycle and XP progression.
-
-### `POST /task`
-- **Description:** Create a new task within today's routine block.
-- **Payload:**
   ```json
   {
     "content": "Deep Work: Architecture",
@@ -99,41 +29,89 @@ Individual task lifecycle and XP progression.
     "plannedEnd": "2026-02-13T11:00:00.000Z"
   }
   ```
+
 - **Response:** `201 Created`
 
-### `POST /task/:id/start` | `pause` | `done`
-- **Description:** Control task execution. Starting a task automatically pauses others.
-- **Params:** `id` (Task UUID)
-- **Response:** `200 OK` with updated `task` and `routineStats`.
+  ```json
+  {
+    "routine": {
+      "id": "rid_2026",
+      "date": "2026-02-13T00:00:00.000Z",
+      "status": "INPROGRESS",
+      "startedAt": "2026-02-13T09:00:00.000Z",
+      "finishedAt": null,
+      "cancelledAt": null,
+      "tasks": [
+        { 
+          "id": "tid_01", 
+          "content": "Deep Work: Architecture", 
+          "status": "PENDING",
+          "category": "WORK" 
+          // ...other task fields
+        }
+      ]
+    },
+    "stats": {
+      "totalTasks": 1,
+      "completedTasks": 0,
+      "completionRate": 0,
+      "totalSecondsPlanned": 7200,
+      "completedSeconds": 0
+    }
+  }
+  ```
+
+### `GET /routines/:date`
+
+- **Description:** Get the routine details and statistics for a specific date.
+- **Params:** `date` (YYYY-MM-DD or ISO string)
+- **Response:** `200 OK`
+  - Returns the same structure as `POST /routines/:date/tasks` (Routine + Stats).
+
+### `GET /routines`
+
+- **Description:** Get all routines for the user.
+- **Response:** `200 OK`
+  - Returns an array of routines.
 
 ---
 
-## 👤 User Profile
-User metadata, growth levels, and XP tracking.
+## ✅ Task Management
 
-### `GET /user/me`
-- **Description:** Current user profile including current Level and XP.
+Control task execution states.
+
+### `POST /tasks/:id/start`
+
+- **Description:** Start a task. Automatically pauses any other running task in the routine.
+- **Params:** `id` (Task CUID)
 - **Response:** `200 OK`
-  ```json
-  {
-    "id": "usr_uuid",
-    "name": "Jane Doe",
-    "level": 15,
-    "xp": 145,
-    "stars": 12,
-    "tulips": 8
-  }
-  ```
+  - Returns updated `Routine` and `Stats`.
+
+### `POST /tasks/:id/pause`
+
+- **Description:** Pause a currently running task.
+- **Params:** `id` (Task CUID)
+- **Response:** `200 OK`
+  - Returns updated `Routine` and `Stats`.
+
+### `POST /tasks/:id/done`
+
+- **Description:** Mark a task as completed.
+- **Params:** `id` (Task CUID)
+- **Response:** `200 OK`
+  - Returns updated `Routine` and `Stats`.
 
 ---
 
 ## 🔐 Authentication & Errors
 
 ### Auth Header
-Currently using a mocked `userId`. Pass token as:
-`Authorization: Bearer <token>`
+
+Currently using a hardcoded `userId` for development.
+Future implementation will require: `Authorization: Bearer <token>`
 
 ### Error Codes
+
 | Status | Type | Meaning |
 | :--- | :--- | :--- |
 | `400` | Bad Request | Validation failed or missing parameters |
@@ -144,5 +122,6 @@ Currently using a mocked `userId`. Pass token as:
 ---
 
 ## 🛠️ Data Infrastructure
+
 Built with **Node.js**, **Express**, **TypeScript**, and **Prisma**.
 See [schema.prisma](file:///c:/Users/Administrator/Desktop/beckend/prisma/schema.prisma) for full data modeling details.

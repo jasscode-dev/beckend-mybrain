@@ -2,7 +2,7 @@ import { z } from "zod";
 
 
 
-export const TaskSchema = z.object({
+export const taskSchema = z.object({
 
     content: z.string().min(2, {
         message: "Content must have at least 2 characters"
@@ -18,7 +18,7 @@ export const TaskSchema = z.object({
 
 
 })
-export const IdSchema = z.object({
+export const idTaskSchema = z.object({
     id: z.cuid({ message: "Invalid CUID format" })
 });
-export type TaskSchemaType = z.infer<typeof TaskSchema>;
+export type askSchemaType = z.infer<typeof taskSchema>;

@@ -60,6 +60,7 @@ export const RoutineRepository = (): IRoutineRepository => {
                 },
                 include: {
                     tasks: {
+                        where: { status: { not: 'CANCELLED' } },
 
                         orderBy: {
                             createdAt: 'desc'
@@ -83,6 +84,7 @@ export const RoutineRepository = (): IRoutineRepository => {
                 include: {
 
                     tasks: {
+                        where: { status: { not: 'CANCELLED' } },
 
                         orderBy: { createdAt: 'asc' }
 
@@ -95,7 +97,7 @@ export const RoutineRepository = (): IRoutineRepository => {
         },
 
         async findByUserAndDay(userId: string, date: Date): Promise<RoutineModel | null> {
-               console.log(date)
+            console.log(date)
             return await prisma.routine.findFirst({
 
                 where: {
@@ -142,6 +144,8 @@ export const RoutineRepository = (): IRoutineRepository => {
                 include: {
 
                     tasks: {
+                        where: { status: { not: 'CANCELLED' } },
+
 
                         orderBy: { createdAt: 'asc' }
 
@@ -160,13 +164,15 @@ export const RoutineRepository = (): IRoutineRepository => {
 
                 where: {
 
-                    id, userId
+                    id, userId,
+
 
                 },
 
                 include: {
 
                     tasks: {
+                        where: { status: { not: 'CANCELLED' } },
 
                         orderBy: { createdAt: 'asc' }
 
@@ -182,7 +188,12 @@ export const RoutineRepository = (): IRoutineRepository => {
 
             return await prisma.task.aggregate({
 
-                where: { routineId, userId },
+                where: {
+                    routineId, userId,
+                    status: { not: 'CANCELLED' }
+
+                },
+
 
                 _count: {
 

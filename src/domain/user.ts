@@ -1,8 +1,9 @@
 import { AppError } from "src/errors/appError"
+import { RoutineStatus } from "src/generated/prisma"
 import { TaskXpInput, UserDomain, UserInput, XP_CONFIG } from "src/types/user.type"
 
 
-export const userDomain = {
+export const User = {
     create: (input: UserInput): UserDomain => {
         if (!input.name || input.name.trim().length < 2) {
             throw new AppError("Name must have at least 2 characters")
@@ -42,7 +43,11 @@ export const userDomain = {
             level
         })
     },
-    addStar: (user: UserDomain): UserDomain => {
+    addStar: (routineStatus: RoutineStatus, user: UserDomain): UserDomain => {
+
+        if (routineStatus != 'COMPLETED') {
+            return Object.freeze(user)
+        }
 
         const updated = {
             ...user,

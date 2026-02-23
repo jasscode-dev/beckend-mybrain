@@ -12,7 +12,7 @@ export const TaskService = (
     routineRepository: IRoutineRepository,
     userRepository: IUserRepository
 ) => {
-    const routineService = RoutineService(routineRepository, taskRepository)
+    const routineService = RoutineService(routineRepository, taskRepository, userRepository)
     const userService = UserService(userRepository)
 
 
@@ -29,9 +29,6 @@ export const TaskService = (
             )
 
         const routine = await routineService.start(updatedTask.routineId, userId)
-
-        /*  const routine = await routineService.findById(updatedTask.routineId, userId) */
-
 
         const stats = await routineService.getStatsByRoutine(updatedTask.routineId, userId)
 
@@ -70,13 +67,43 @@ export const TaskService = (
 
             )
         const userXp = await userService.processTaskReward(userId, updatedTask)
+
         const routine = await routineService.completedRoutine(updatedTask.routineId, userId)
+
+        const receivedStar = await userService.addStar(routine.status, userId)
+
+
+
         const stats = await routineService.getStatsByRoutine(updatedTask.routineId, userId)
-        console.log(userXp)
+
+        return {
+            routine,
+            stats,
+            reward: {
+                xpGained: userXp.xpGained,
+                leveledUp: userXp.leveledUp,
+                newLevel: userXp.newLevel,
+                star: receivedStar
+            }
+        }
+    }
+    const delet = async (taskId: string, userId: string) => {
+        const rawTask = await findById(taskId, userId)
+        const now = new Date()
+        const taskDomain = Task.cancel(rawTask, now)
+        const updatedTask = await taskRepository.
+            update(
+                taskDomain,
+                userId,
+                rawTask.id
+            )
+        const routine = await routineService.findById(updatedTask.routineId, userId)
+        const stats = await routineService.getStatsByRoutine(updatedTask.routineId, userId)
         return {
             routine,
             stats
         }
+
     }
 
     const findById = async (taskId: string, userId: string) => {
@@ -85,11 +112,13 @@ export const TaskService = (
         if (task.userId !== userId) throw new AppError("Unauthorized")
         return task
     }
+
     return {
         start,
         findById,
         pause,
-        done
+        done,
+        delet
     }
 
 

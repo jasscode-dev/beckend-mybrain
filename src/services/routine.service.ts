@@ -5,15 +5,19 @@ import { AppError } from "src/errors/appError";
 import { RoutineMapper } from "src/mappers/routine.mapper";
 import { IRoutineRepository } from "src/reposirories/routine.repository";
 import { ITaskRepository } from "src/reposirories/task.repository";
-import { RoutineDomain } from "src/types/routine.type";
+import { IUserRepository } from "src/reposirories/user.repository";
+import { RoutineDomain, RoutineStats } from "src/types/routine.type";
 import { TaskDomain, TaskInput } from "src/types/task.type";
 import { normalizeDate } from "src/utils/date";
+import { UserService } from "./user.service";
 
 
 export const RoutineService = (
     repository: IRoutineRepository,
-    taskRepository: ITaskRepository
+    taskRepository: ITaskRepository,
+    userRepository: IUserRepository
 ) => {
+    const userService = UserService(userRepository);
 
     const findById = async (id: string, userId: string) => {
         const routine = await repository.findById(id, userId);
@@ -22,30 +26,22 @@ export const RoutineService = (
         return routine;
     }
 
-    const getStatsByRoutine = async (routineId: string, userId: string) => {
+    const getStatsByRoutine = async (routineId: string, userId: string): Promise<RoutineStats> => {
         const routineCheck = await repository.findById(routineId, userId);
-        if (!routineCheck) throw new Error("Routine not found");
+        if (!routineCheck) throw new AppError("Routine not found", 404);
 
-        const [stats, completedCount] = await Promise.all([
-            repository.getRoutineTaskStats(routineId, userId),
-            repository.getCompletedTaskCount(routineId, userId)
-        ]);
+        const stats = await repository.getRoutineTaskStats(routineId, userId);
 
-        const totalTasks = stats._count._all;
-        const totalSecondsPlanned = stats._sum.durationSec || 0;
-        const completedSeconds = stats._sum.actualDurationSec || 0;
-
-        const completionRate = totalTasks > 0
-            ? Math.round((completedCount / totalTasks) * 100)
-            : 0;
-
-        return {
-            totalTasks,
-            completedTasks: completedCount,
-            completionRate,
-            totalSecondsPlanned,
-            completedSeconds
-        };
+        if (!stats) {
+            return {
+                totalTasks: 0,
+                completedTasks: 0,
+                completionRate: 0,
+                totalSecondsPlanned: 0,
+                completedSeconds: 0,
+            };
+        }
+        return stats
     }
 
     const getOrCreateDailyRoutine = async (userId: string, date: Date) => {
@@ -59,10 +55,11 @@ export const RoutineService = (
 
     return {
         create: async (userId: string, taskInput: TaskInput, date: Date) => {
-            console.log(date)
-            const routineData = await getOrCreateDailyRoutine(userId, date)
+             
+            const day = normalizeDate(date)
+            const routineData = await getOrCreateDailyRoutine(userId, day)
 
-            const newTask = Task.create(taskInput, routineData.id)
+            const newTask = Task.create(taskInput)
 
             const now = new Date()
 
@@ -121,6 +118,7 @@ export const RoutineService = (
                 new Date(),
                 dones
             );
+
             return await repository.update(routineId, userId,
                 updatedDomain);
 

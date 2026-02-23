@@ -5,6 +5,7 @@ export interface IUserRepository {
     save(user: UserDomain): Promise<UserModel>;
     update(user: UserDomain, userId: string): Promise<UserModel>;
     findById(userId: string): Promise<UserModel | null>;
+    findByEmail(email:string):Promise<UserModel | null>;
 }
 
 export const UserRepository = (): IUserRepository => {
@@ -39,6 +40,13 @@ export const UserRepository = (): IUserRepository => {
             });
 
 
+        },
+        async findByEmail(email:string):Promise<UserModel | null>{
+             return prisma.user.findUnique({
+                where: { email},
+
+            });
         }
+        
     };
 };

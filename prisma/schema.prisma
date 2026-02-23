@@ -17,12 +17,15 @@ model User {
   name      String
   email     String   @unique 
   password  String
+  isAdm Boolean @default(false)
+  token String?
+
 
   level     Int @default(1)
   xp        Int @default(0)
   stars     Int @default(0)
   tulips    Int @default(0)
-
+  dailyAchievment DailyAchievment[]
   routines  Routine[]
   tasks     Task[]
 
@@ -44,7 +47,7 @@ model Routine {
   startedAt     DateTime?
   finishedAt    DateTime?
   cancelledAt   DateTime?
-
+  
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
@@ -78,14 +81,20 @@ model Task {
   @@index([routineId])
 }
 
-model RewardLog {
-  id         String   @id @default(cuid())
-  userId     String
-  routineId  String?
-  type       RewardType
-  amount     Int
-  createdAt  DateTime @default(now())
+
+model DailyAchievment{
+
+  id String @id @default(cuid())
+  userId String 
+  date  DateTime
+  earnedStar Boolean @ default(false)
+  xpGained Int @default(0)
+  user User @relation(fields:[userId], references:[id])
+  @@unique([userId,date])
+  @@index([userId,date])
 }
+
+
 
 
 enum RewardType {

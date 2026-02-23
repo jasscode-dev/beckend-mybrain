@@ -3,7 +3,7 @@ import { TaskDomain, TaskInput } from "src/types/task.type"
 
 
 export const Task = {
-    create: (input: TaskInput, routineId: string): TaskDomain => {
+    create: (input: TaskInput): TaskDomain => {
         const plannedStart = new Date(input.plannedStart)
         const plannedEnd = new Date(input.plannedEnd)
 
@@ -39,8 +39,8 @@ export const Task = {
     },
 
     start: (task: TaskDomain, now: Date) => {
-        if (task.status === 'DONE') throw new Error("Task is already done")
-        if (task.status === 'INPROGRESS') throw new Error("Task is already running")
+        if (task.status === 'DONE') throw new AppError("Task is already done")
+        if (task.status === 'INPROGRESS') throw new AppError("Task is already running")
 
         return {
             ...task,
@@ -90,7 +90,7 @@ export const Task = {
     },
 
     cancel: (task: TaskDomain, now: Date) => {
-        if (task.status === 'DONE') throw new AppError("Task is already done")
+        if (task.status === 'DONE') throw new AppError("It is not possible to delete completed tasks.")
 
         return {
             ...task,

@@ -30,7 +30,8 @@ export const TaskRepository = (): ITaskRepository => {
             return await prisma.task.findUnique({
                 where: {
                     id: taskId,
-                    userId
+                    userId,
+                    status: { not: 'CANCELLED' }
                 }
             })
         },

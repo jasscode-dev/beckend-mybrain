@@ -4,7 +4,7 @@ import { userController } from "src/composition/user.composition";
 
 const router = Router();
 
-router.post('/register', userController.register);
+router.get('/me', userController.getMe);
 
 
 export default router;

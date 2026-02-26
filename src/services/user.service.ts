@@ -5,7 +5,8 @@ import { IUserRepository } from "src/reposirories/user.repository";
 import { TaskModel } from "src/types/task.type";
 import { LoginUserInput, UserInput } from "src/types/user.type";
 import bcrypt from "bcryptjs";
-import { generateToken } from "src/lib/jwt";
+import crypto from "crypto";
+
 
 
 
@@ -14,8 +15,8 @@ import { generateToken } from "src/lib/jwt";
 export const UserService = (userRepository: IUserRepository) => {
     const findById = async (id: string) => {
         const user = await userRepository.findById(id);
-        if (!user) throw new Error("User not found");
-        if (id != user.id) throw new Error("unauthorized");
+        if (!user) throw new AppError("User not found",404);
+     
         return user
     }
     const processTaskReward = async (userId: string, taskData: TaskModel) => {
@@ -58,10 +59,7 @@ export const UserService = (userRepository: IUserRepository) => {
         return false
 
 
-
-
     }
-
 
 
     const register = async (userIput: UserInput) => {
@@ -95,30 +93,38 @@ export const UserService = (userRepository: IUserRepository) => {
             throw new AppError("Invalid credentials", 401);
         }
 
-        const token = generateToken({
-            userId: user.id,
-            email: user.email
-        });
-
+        const token = crypto.randomBytes(32).toString("hex");
+        await userRepository.saveToken(user.id, token);
         return {
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                level: user.level,
-                xp: user.xp,
-                stars: user.stars,
-                tulips: user.tulips
-            },
+            user,
             token
         };
+
     };
+    const logout = async (token: string) => {
+        const user = await userRepository.findByToken(token);
+        if (user) {
+            await userRepository.deleteToken(user.id);
+        }
+    }
+    const validateToken = async (token: string) => {
+        const user = await userRepository.findByToken(token);
+
+        if(!user) {
+            return null;
+
+        }
+        return user;
+    }
+
 
     return {
         findById,
         processTaskReward,
         addStar,
         register,
-        login
+        login,
+        logout,
+        validateToken
     }
 };

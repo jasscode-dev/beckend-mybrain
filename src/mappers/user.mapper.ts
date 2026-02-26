@@ -11,6 +11,7 @@ export const UserMapper = {
             xp:user.xp,
             stars:user.stars,
             tulips:user.tulips
+           
             
            
 

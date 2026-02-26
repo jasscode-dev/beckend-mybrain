@@ -53,3 +53,4 @@ export interface UserModel extends UserDomain {
     createdAt: Date;
     updatedAt: Date;
 }
+

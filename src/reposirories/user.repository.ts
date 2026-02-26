@@ -5,7 +5,10 @@ export interface IUserRepository {
     save(user: UserDomain): Promise<UserModel>;
     update(user: UserDomain, userId: string): Promise<UserModel>;
     findById(userId: string): Promise<UserModel | null>;
-    findByEmail(email:string):Promise<UserModel | null>;
+    findByEmail(email: string): Promise<UserModel | null>;
+    saveToken(userId: string, token: string): Promise<void>;
+    findByToken(token: string): Promise<UserModel | null>;
+    deleteToken(userId: string): Promise<void>;
 }
 
 export const UserRepository = (): IUserRepository => {
@@ -32,6 +35,30 @@ export const UserRepository = (): IUserRepository => {
 
 
         },
+        async saveToken(userId: string, token: string): Promise<void> {
+            await prisma.user.update({
+                where: { id: userId },
+                data: {
+                    token,
+                    updatedAt: new Date()
+                },
+            });
+        },
+        async deleteToken(userId: string): Promise<void> {
+            await prisma.user.update({
+                where: { id: userId },
+                data: {
+                    token: null,
+                    updatedAt: new Date()
+                },
+            });
+        },
+        async findByToken(token: string): Promise<UserModel | null> {
+            return prisma.user.findFirst({
+                where: { token },
+
+            });
+        },
 
         async findById(id: string): Promise<UserModel | null> {
             return prisma.user.findUnique({
@@ -41,12 +68,13 @@ export const UserRepository = (): IUserRepository => {
 
 
         },
-        async findByEmail(email:string):Promise<UserModel | null>{
-             return prisma.user.findUnique({
-                where: { email},
+
+        async findByEmail(email: string): Promise<UserModel | null> {
+            return prisma.user.findUnique({
+                where: { email },
 
             });
         }
-        
+
     };
 };

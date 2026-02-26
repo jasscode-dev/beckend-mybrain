@@ -1,29 +1,36 @@
 
-import {Response, Request} from "express"
+import { Response, Request } from "express"
 import { UserMapper } from "src/mappers/user.mapper";
 import { IUserRepository } from "src/reposirories/user.repository";
 import { UserService } from "src/services/user.service";
-import { registerUserSchema } from "src/validators/user.schema";
+
 
 
 export const UserController = (
-    userRepository: IUserRepository
+  userRepository: IUserRepository
 ) => {
-    const userService = UserService(userRepository)
-   
-    return {
-        
-     register: async (req:Request, res:Response)=>{
+  const userService = UserService(userRepository)
 
-        const data = registerUserSchema.parse(req.body)
-
-        const userCreate = await userService.register(data)
-
-       return  res.status(201).json(UserMapper.toResponse(userCreate))
-        
+  return {
 
 
+    getMe: async (req: Request, res: Response) => {
+      if (!req.user) {
+        return res.status(401).json({ error: "Unauthorized", data: null });
+      }
+      const user = await userService.findById(req.user.id);
 
-     }
+      return res.status(200).json({
+        error: null,
+        data: {
+          user: UserMapper.toResponse(user)
+        }
+      });
+
+    }
+
+  }
+
+
 }
-}
+

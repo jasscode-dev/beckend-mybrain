@@ -1,3 +1,4 @@
+import { Temporal } from "@js-temporal/polyfill"
 import { AppError } from "src/errors/appError"
 import { TaskDomain, TaskInput } from "src/types/task.type"
 
@@ -38,28 +39,36 @@ export const Task = {
         })
     },
 
-    start: (task: TaskDomain, now: Date) => {
+    start: (task: TaskDomain, now: Temporal.ZonedDateTime) => {
         if (task.status === 'DONE') throw new AppError("Task is already done")
         if (task.status === 'INPROGRESS') throw new AppError("Task is already running")
 
         return {
             ...task,
             status: 'INPROGRESS' as const,
-            startedAt: now,
+            startedAt: new Date(now.epochMilliseconds),
         }
     },
 
-    pause: (task: TaskDomain, now: Date) => {
+    pause: (task: TaskDomain, now: Temporal.ZonedDateTime) => {
         if (task.status !== 'INPROGRESS') throw new AppError("Task is not running")
         if (!task.startedAt) throw new AppError("Task is not running")
 
+        const start = Temporal.Instant.fromEpochMilliseconds(task.startedAt.getTime());
+        const duration = now.toInstant().since(start);
+        const sessionDurationSec = Math.floor(duration.total({ unit: 'second' }));
+        const actualDurationSec = (task.actualDurationSec || 0) + sessionDurationSec;
 
-        const sessionDurationSec = Math.floor((now.getTime() - task.startedAt.getTime()) / 1000)
-        const actualDurationSec = (task.actualDurationSec || 0) + sessionDurationSec
+        /*  const sessionDurationSec = Math.floor((now.getTime() - task.startedAt.getTime()) / 1000)
+         console.log("sessionDurationSec:", sessionDurationSec)
+         console.log("task.actualDurationSec:", task.actualDurationSec)
+ 
+         const actualDurationSec = (task.actualDurationSec || 0) + sessionDurationSec
+         console.log("actualDurationSec final:", actualDurationSec) */
 
         return {
             ...task,
-            status: 'PAUSED'    as const,
+            status: 'PAUSED' as const,
             startedAt: null,
             actualDurationSec,
         }
@@ -77,7 +86,7 @@ export const Task = {
             actualDurationSec += sessionDurationSec
         }
 
-     
+
         actualDurationSec = Math.min(actualDurationSec, task.durationSec)
 
         return {
@@ -98,6 +107,18 @@ export const Task = {
             cancelledAt: now,
         }
     },
+    unmark: (task: TaskDomain) => {
+        if (task.status !== 'DONE') throw new AppError("Only completed tasks can be unmarked.")
+
+        return {
+            ...task,
+            status: 'PAUSED' as const,
+            finishedAt: null,
+        }
+    }
+
+
+
 
 
 }

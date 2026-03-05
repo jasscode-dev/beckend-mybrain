@@ -12,6 +12,7 @@ export interface ITaskRepository {
     save(task: TaskDomain, userId: string, routineId: string): Promise<TaskModel>;
     findById(taskId: string, userId: string): Promise<TaskModel | null>;
     update(task: TaskDomain, userId: string, id: string): Promise<TaskModel>;
+    findActiveTask(userId: string): Promise<TaskModel | null>;
 }
 
 export const TaskRepository = (): ITaskRepository => {
@@ -47,7 +48,16 @@ export const TaskRepository = (): ITaskRepository => {
             }
 
             });
+           
 },
+async findActiveTask(userId: string): Promise<TaskModel | null> {
+            return await prisma.task.findFirst({
+                where: {
+                    userId,
+                    status: 'INPROGRESS'  
+                }
+            });
+        },
 
 
     }

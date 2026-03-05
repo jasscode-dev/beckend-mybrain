@@ -8,7 +8,7 @@ import { ITaskRepository } from "src/reposirories/task.repository";
 import { IUserRepository } from "src/reposirories/user.repository";
 import { RoutineDomain, RoutineStats } from "src/types/routine.type";
 import { TaskDomain, TaskInput } from "src/types/task.type";
-import { normalizeDate } from "src/utils/date";
+import { dateNow, normalizeDate } from "src/utils/date";
 import { UserService } from "./user.service";
 
 
@@ -30,9 +30,9 @@ export const RoutineService = (
         const routineCheck = await repository.findById(routineId, userId);
         if (!routineCheck) throw new AppError("Routine not found", 404);
 
-        const stats = await repository.getRoutineTaskStats(routineId, userId);
+        const statsRaw = await repository.getRoutineTaskStats(routineId, userId);
 
-        if (!stats) {
+        if (!statsRaw || statsRaw._count._all === 0) {
             return {
                 totalTasks: 0,
                 completedTasks: 0,
@@ -41,7 +41,19 @@ export const RoutineService = (
                 completedSeconds: 0,
             };
         }
-        return stats
+
+        const completedTasks = await repository.getCompletedTaskCount(routineId, userId);
+        const totalTasks = statsRaw._count._all;
+        const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+
+        return {
+            totalTasks: totalTasks,
+            completedTasks: completedTasks,
+            completionRate: completionRate,
+            totalSecondsPlanned: statsRaw._sum.durationSec || 0,
+            completedSeconds: statsRaw._sum.actualDurationSec || 0,
+        };
     }
 
     const getOrCreateDailyRoutine = async (userId: string, date: Date) => {
@@ -55,24 +67,24 @@ export const RoutineService = (
 
     return {
         create: async (userId: string, taskInput: TaskInput, date: Date) => {
-             
-            const day = normalizeDate(date)
+
+            const timezone = 'America/Sao_Paulo'
+            // TODO: handle timezone in a better way, maybe by user preference or by request header
+            const day = normalizeDate(date, timezone)
             const routineData = await getOrCreateDailyRoutine(userId, day)
 
+            if (routineData.status === 'COMPLETED') {
+                await userService.removeStar(userId)
+            }
             const newTask = Task.create(taskInput)
-
-            const now = new Date()
-
+            const now = normalizeDate(new Date(), timezone)
             const routineDomain = Routine.addTask(
                 RoutineMapper.modelToDomain(routineData), newTask, now)
-
 
             const routineSave = await repository.save(
                 routineDomain, newTask, userId
             )
             const stats = await getStatsByRoutine(routineSave.id, userId)
-
-
 
             return {
                 routine: routineSave,
@@ -101,10 +113,13 @@ export const RoutineService = (
         },
 
         start: async (routineId: string, userId: string) => {
+            const timezone = 'America/Sao_Paulo'
+            const now = normalizeDate(new Date(), timezone)
             const routine = await findById(routineId, userId)
             const updatedDomain = Routine.start(
                 RoutineMapper.modelToDomain(routine),
-                new Date());
+                now
+            );
             return await repository.update(routineId, userId, updatedDomain
             );
         },
@@ -123,21 +138,16 @@ export const RoutineService = (
                 updatedDomain);
 
         },
-        /* finish: async (routineId: string, userId: string) => {
-            const routineDomain = await findAndAuthorize(routineId, userId);
-            const updatedDomain = Routine.finish(routineDomain, new Date());
-            return await repository.update(routineId, updatedDomain);
-        },
 
-        cancel: async (routineId: string, userId: string) => {
-            const routineDomain = await findAndAuthorize(routineId, userId);
-            const updatedDomain = Routine.cancel(routineDomain, new Date());
-            return await repository.update(routineId, updatedDomain);
-        }, */
+        unmark: async (routineId: string, userId: string) => {
+            const routineData = await findById(routineId, userId);
+            const routineDomain = Routine.unmarkTask(RoutineMapper.modelToDomain(routineData));
+
+            return await repository.update(routineId, userId, routineDomain);
+        },
 
         findById,
         getStatsByRoutine,
         getOrCreateDailyRoutine
-
     }
 }

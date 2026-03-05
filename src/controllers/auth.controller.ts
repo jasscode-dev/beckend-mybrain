@@ -18,9 +18,9 @@ export const AuthController = (userRepository: IUserRepository) => {
 
             return res.status(201).json({
                 error: null,
-                data: {
-                    user: UserMapper.toResponse(userCreate)
-                }
+
+                user: UserMapper.toResponse(userCreate)
+
 
             })
 
@@ -36,26 +36,28 @@ export const AuthController = (userRepository: IUserRepository) => {
             return res.status(200).json(
                 {
                     error: null,
-                    data: {
-                        user: UserMapper.toResponse(result.user),
-                        token: result.token
-                    }
+                    user: UserMapper.toResponse(result.user),
+                    token: result.token
+
                 }
+
+
+                
             );
         },
 
 
-        logout: async (req: Request, res: Response) => {
-            const authHeader = req.headers.authorization;
-            if (authHeader) {
-                const token = authHeader.split(' ')[1];
-                await userService.logout(token);
+logout: async (req: Request, res: Response) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+        const token = authHeader.split(' ')[1];
+        await userService.logout(token);
 
-            }
-
-            res.json({ error: null, data: "Logout successful" })
-        }
     }
-        
-    
-    };
+
+    res.json({ error: null, data: "Logout successful" })
+}
+    }
+
+
+};

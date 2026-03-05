@@ -22,9 +22,8 @@ export const UserController = (
 
       return res.status(200).json({
         error: null,
-        data: {
           user: UserMapper.toResponse(user)
-        }
+        
       });
 
     }

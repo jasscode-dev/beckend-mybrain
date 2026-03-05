@@ -7,15 +7,16 @@ export const UserMapper = {
             id: user.id,
             name: user.name,
             email: user.email,
-            level:user.level,
-            xp:user.xp,
-            stars:user.stars,
-            tulips:user.tulips
-           
-            
-           
+            isAdm: user.isAdm,
+            level: user.level,
+            xp: user.xp,
+            stars: user.stars,
+            tulips: user.tulips
+
+
+
 
         }
     },
-   
+
 }

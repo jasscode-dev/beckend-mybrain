@@ -9,28 +9,30 @@ import { normalizeDate } from "src/utils/date";
 
 
 const itsValidDay = (routineDate: Date, now: Date): boolean => {
-    const rDate = normalizeDate(routineDate);
-    const today = normalizeDate(now);
-    return rDate >= today;
+
+    return routineDate.getTime() >= now.getTime();
 }
 
 
 export const Routine = {
 
-    itsValidDay: (routine: RoutineDomain, date: Date, now: Date) => {
+    /* itsValidDay: (routine: RoutineDomain, date: Date, now: Date) => {
+
         const routineDate = normalizeDate(routine.date)
         const today = normalizeDate(now)
-        if (routineDate < today) {
+        console.log("routineDate", routineDate)
+        console.log("today", today)
+        if (routineDate.getTime() < today.getTime()) {
             return false
         }
         return true
-    },
+    }, */
     create: (date: Date): RoutineDomain => {
         if (Number.isNaN(date.getTime())) {
             throw new Error("Invalid date format");
         }
 
-     
+
 
         return Object.freeze({
             date,
@@ -109,6 +111,17 @@ export const Routine = {
         };
 
     },
+
+    unmarkTask: (routine: RoutineDomain): RoutineDomain => {
+        if (routine.status === 'COMPLETED') {
+            return {
+                ...routine,
+                status: 'INPROGRESS' as const,
+                finishedAt: null,
+            }
+        }
+        return routine;
+    }
 
 
 };

@@ -86,7 +86,7 @@ export const RoutineRepository = (): IRoutineRepository => {
                     tasks: {
                         where: { status: { not: 'CANCELLED' } },
 
-                        orderBy: { createdAt: 'asc' }
+                        orderBy: { createdAt: 'desc' }
 
                     }
 
@@ -113,14 +113,7 @@ export const RoutineRepository = (): IRoutineRepository => {
         async create(date: Date, userId: string): Promise<RoutineModel> {
 
             return await prisma.routine.create({
-
-                data: {
-
-                    date,
-
-                    userId
-
-                }
+                data: {date, userId}, 
 
             })
 
@@ -147,7 +140,7 @@ export const RoutineRepository = (): IRoutineRepository => {
                         where: { status: { not: 'CANCELLED' } },
 
 
-                        orderBy: { createdAt: 'asc' }
+                        orderBy: { createdAt: 'desc' }
 
                     }
 

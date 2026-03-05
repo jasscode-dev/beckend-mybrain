@@ -23,24 +23,29 @@ export const UserService = (userRepository: IUserRepository) => {
         const user = await findById(userId)
 
 
-        const xpGained = User.calculateTaskXP(taskData);
+        const xpResult = User.calculateTaskXP(taskData);
 
 
-        if (xpGained > 0) {
+        if (xpResult.xp > 0) {
 
-            const updatedUser = User.addXp(user, xpGained);
+            const updatedUser = User.addXp(user, xpResult.xp);
 
 
             await userRepository.update(updatedUser, userId);
 
             return {
-                xpGained,
+                xpGained: xpResult.xp,
+                reason: xpResult.reason,
                 newLevel: updatedUser.level,
                 leveledUp: updatedUser.level > user.level
             };
         }
 
-        return { xpGained: 0, leveledUp: false };
+        return { 
+            xpGained: 0, 
+            reason: xpResult.reason,
+            leveledUp: false 
+        };
     };
     const addStar = async (status: RoutineStatus, userId: string) => {
 
@@ -59,6 +64,18 @@ export const UserService = (userRepository: IUserRepository) => {
         return false
 
 
+    }
+    
+    const removeStar = async (userId: string) => {
+        const user = await findById(userId)
+        const updatedUser = User.removeStar(user)
+        const removed = updatedUser.stars < user.stars
+        
+        if (removed) {
+            await userRepository.update(updatedUser, userId)
+            return true
+        }
+        return false
     }
 
 
@@ -122,6 +139,7 @@ export const UserService = (userRepository: IUserRepository) => {
         findById,
         processTaskReward,
         addStar,
+        removeStar,
         register,
         login,
         logout,

@@ -6,7 +6,11 @@ import { IRoutineRepository } from "src/reposirories/routine.repository";
 import { IUserRepository } from "src/reposirories/user.repository";
 import { UserService } from "./user.service";
 import { AppError } from "src/errors/appError";
-
+import { date } from "zod";
+import { normalize } from "node:path";
+import { normalizeDate } from "src/utils/date";
+import { formatInTimeZone, fromZonedTime } from 'date-fns-tz';
+import { getDateTimeByTimezone } from "src/utils/getDateTimeByTimezone";
 export const TaskService = (
     taskRepository: ITaskRepository,
     routineRepository: IRoutineRepository,
@@ -18,11 +22,32 @@ export const TaskService = (
 
 
     const start = async (taskId: string, userId: string) => {
+
+
+
+        /*  const timezone = 'America/Sao_Paulo'
+         const dateString = formatInTimeZone(new Date(), timezone, 'yyyy-MM-dd HH:mm:ss');
+         const now = fromZonedTime(dateString, timezone);
+         */
+        const now = getDateTimeByTimezone('America/Sao_Paulo')
+
+
+
+
+        const activeTask = await taskRepository.findActiveTask(userId);
+        if (activeTask) {
+            await taskRepository.update(
+                Task.pause(activeTask, now),
+                userId,
+                activeTask.id
+            );
+        }
+
         const rawTask = await findById(taskId, userId)
-        const date = new Date()
+
         const updatedTask = await taskRepository.
             update(
-                Task.start(rawTask, date),
+                Task.start(rawTask, now),
                 userId,
                 rawTask.id
 
@@ -38,11 +63,12 @@ export const TaskService = (
         }
     }
     const pause = async (taskId: string, userId: string) => {
+
         const rawTask = await findById(taskId, userId)
-        const date = new Date()
+        const now = getDateTimeByTimezone('America/Sao_Paulo')
         const updatedTask = await taskRepository.
             update(
-                Task.pause(rawTask, date),
+                Task.pause(rawTask, now),
                 userId,
                 rawTask.id
 
@@ -81,6 +107,7 @@ export const TaskService = (
             stats,
             reward: {
                 xpGained: userXp.xpGained,
+                xpReason: userXp.reason,
                 leveledUp: userXp.leveledUp,
                 newLevel: userXp.newLevel,
                 star: receivedStar
@@ -106,6 +133,29 @@ export const TaskService = (
 
     }
 
+    const unmark = async (taskId: string, userId: string) => {
+        const rawTask = await findById(taskId, userId)
+
+        const taskDomain = Task.unmark(rawTask)
+
+        const updatedTask = await taskRepository.update(
+            taskDomain,
+            userId,
+            rawTask.id
+        )
+
+        await routineService.unmark(updatedTask.routineId, userId);
+
+
+        const routine = await routineService.findById(updatedTask.routineId, userId)
+        const stats = await routineService.getStatsByRoutine(updatedTask.routineId, userId)
+
+        return {
+            routine,
+            stats
+        }
+    }
+
     const findById = async (taskId: string, userId: string) => {
         const task = await taskRepository.findById(taskId, userId)
         if (!task) throw new AppError("Task not found")
@@ -113,12 +163,15 @@ export const TaskService = (
         return task
     }
 
+
+
     return {
         start,
         findById,
         pause,
         done,
-        delet
+        delet,
+        unmark
     }
 
 

@@ -56,15 +56,29 @@ export const User = {
 
         return Object.freeze(updated)
     },
-    calculateTaskXP: (input: TaskXpInput): number => {
+    removeStar: (user: UserDomain): UserDomain => {
+        if (user.stars <= 0) {
+            return Object.freeze(user)
+        }
+
+        const updated = {
+            ...user,
+            stars: user.stars - 1
+        }
+
+        return Object.freeze(updated)
+    },
+    
+
+    calculateTaskXP: (input: TaskXpInput): { xp: number; reason: string } => {
 
         if (input.status !== 'DONE') {
-            return 0;
+            return { xp: 0, reason: 'Task was not completed' };
         }
 
 
         if (input.actualDurationSec === 0) {
-            return 0;
+            return { xp: 0, reason: 'No time was tracked for this task' };
         }
 
         const timeRatio = Math.min(input.actualDurationSec / input.durationSec, 1)
@@ -83,8 +97,23 @@ export const User = {
             xp += XP_CONFIG.onTimeBonus;
         }
 
-        return xp;
+        // Generate explanatory message
+        const percentage = Math.round(timeRatio * 100);
+        let reason = `${percentage}% of planned time worked`;
+        
+        if (percentage < 100) {
+            reason += ` (completed before planned time)`;
+        } else if (onTime) {
+            reason += ` + on-time bonus`;
+        }
+        
+        if (XP_CONFIG.categoryBonus[input.category] > 0) {
+            reason += ` + ${input.category} bonus`;
+        }
+
+        return { xp, reason };
     },
+    
     totalXp(user: UserDomain) {
         return user.xp + (user.level - 1) * XP_CONFIG.xpPerLevel;
     },

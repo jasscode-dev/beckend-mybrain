@@ -3,13 +3,13 @@ import { Category, StatusTask } from "./task.type";
 
 
 export const XP_CONFIG = {
-    baseTask: 10,
-    onTimeBonus: 3,
+    baseTask: 12,
+    onTimeBonus: 5,
     categoryBonus: {
-        WORK: 1,
-        STUDY: 2,
+        WORK: 2,
+        STUDY: 3,
         BREAK: 0,
-        PERSONAL: 0,
+        PERSONAL: 1,
 
     },
     xpPerLevel: 200
@@ -49,6 +49,7 @@ export interface UserModel extends UserDomain {
     id: string;
     name: string;
     email: string;
+    isAdm: boolean;
     password: string;
     createdAt: Date;
     updatedAt: Date;

@@ -9,6 +9,7 @@ router.use(authMiddleware);
 router.post('/:id/start', taskController.start);
 router.post('/:id/pause', taskController.pause);
 router.post('/:id/done', taskController.done);
+router.post('/:id/unmark', taskController.unmark);
 router.delete('/:id', taskController.delete);
 
 export default router;
